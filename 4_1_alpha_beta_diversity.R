@@ -10,8 +10,8 @@ library(vegan)
 library(ggplot2)
 
 # === Set input/output paths ===
-SITE <- "akonolinga"  # "akonolinga" or "ayos"
-site <- "B"     # ayos = A, akonolinga = B
+SITE <- "ayos"  # "akonolinga" or "ayos"
+site <- "A"     # ayos = A, akonolinga = B
 
 kraken_reports_dir <- paste0("../output/16srna_buruli_", SITE, "_set", site, "/kraken2_reports/")
 combined_csv_file <- paste0("../output/16srna_buruli_", SITE, "_set", site, "/combined_kraken_cleaned.csv")

@@ -14,8 +14,8 @@ import math
 # 0. User parameters
 # -------------------------------
 
-SITE = "ayos"  # "akonolinga" or "ayos"
-SITESET = "A"     # ayos = A, akonolinga = B
+SITE = "akonolinga"  # "akonolinga" or "ayos"
+SITESET = "B"     # ayos = A, akonolinga = B
 
 KRAKEN_FILE = f"../output/16srna_buruli_{SITE}_set{SITESET}/combined_kraken_cleaned.csv"
 METADATA_FILE = f"../fastq_pass_{SITE}.tsv"
@@ -76,6 +76,8 @@ for var in CLINICAL_NUMERIC:
         mat_df = count_mat_filtered[top_taxa].copy()
         mat_df[var] = pd.to_numeric(metadata_filtered[var], errors="coerce")
 
+        # Create bins for X axis
+
         # correlation matrix
         cor_mat = mat_df.corr(method="pearson")
         plt.figure(figsize=(12, 10))
@@ -86,6 +88,12 @@ for var in CLINICAL_NUMERIC:
         plt.close()
 
         # scatter plots in a panel
+        bins = [0, 5, 15, float('inf')]
+        labels = ["<=5", "5-15", ">15"]
+        metadata_filtered[f"{var}_bin"] = pd.cut(pd.to_numeric(metadata_filtered[var], errors="coerce"),
+                                         bins=bins,
+                                         labels=labels,
+                                         include_lowest=True)
         n_taxa = len(top_taxa)
         ncols = 4
         nrows = math.ceil(n_taxa / ncols)
@@ -94,6 +102,18 @@ for var in CLINICAL_NUMERIC:
         axes = axes.flatten()
 
         for i, taxon in enumerate(top_taxa):
+            ordered_categories = ["≤ 5cm", "5-15cm", "˃ 15cm"]
+            metadata_filtered[var] = pd.Categorical(metadata_filtered[var],
+                                                    categories=ordered_categories,
+                                                    ordered=True)
+
+            sorted_idx = metadata_filtered[var].sort_values().index
+
+            # Vérification
+            print(metadata_filtered.loc[sorted_idx, var])
+            print(count_mat_filtered.loc[sorted_idx, taxon])
+
+
             sns.scatterplot(x=metadata_filtered[var], y=count_mat_filtered[taxon], ax=axes[i])
             sns.regplot(x=pd.to_numeric(metadata_filtered[var], errors="coerce"),
                         y=count_mat_filtered[taxon],
@@ -119,6 +139,12 @@ for var in CLINICAL_NUMERIC:
 for var in CLINICAL_CATEGORICAL:
     if var in metadata_filtered.columns:
         top_taxa = count_mat_filtered.sum(axis=0).sort_values(ascending=False).head(10).index
+
+        # Define desired order for categorical variables
+        desired_order = ["I", "II", "III"]  # adjust according to your data
+        metadata_filtered[var] = pd.Categorical(metadata_filtered[var],
+                                                categories=desired_order,
+                                                ordered=True)
 
         n_taxa = len(top_taxa)
         ncols = 4

@@ -4,8 +4,8 @@ library(readr)
 library(cowplot)  # for theme improvements
 
 # === Read Environment Variables from Shell ===
-SITE <- "akonolinga"  # Change to "akonolinga" or "ayos"
-site <- "B"     # ayos = A, akonolinga = B
+SITE <- "ayos"  # Change to "akonolinga" or "ayos"
+site <- "A"     # ayos = A, akonolinga = B
 
 # === Construct Paths Dynamically ===
 multiqc_raw <- paste0("../output/16srna_buruli_", SITE, "_set", site, "/multiqc_raw/multiqc_data/multiqc_general_stats.txt")

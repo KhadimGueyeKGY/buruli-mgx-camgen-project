@@ -47,13 +47,14 @@ sample_ps <- sample_data(sample_metadata)
 physeq <- phyloseq(otu_ps, sample_ps)
 
 # Define custom colors
-custom_colors <- c("AK" = "#1f78b4",   # Blue
-                   "AY" = "#33a02c",   # Green
+custom_colors <- c("AK" = "#1f78b4",   # Blue AK = Akonolinga
+                   "AY" = "#33a02c",   # Green AY = Ayos
                    "Other" = "grey50")
 
 # ==============================
 # Alpha Diversity (Shannon)
 # ==============================
+
 alpha_df <- estimate_richness(physeq, measures = c("Shannon")) %>%
   rownames_to_column("Sample") %>%
   left_join(sample_metadata %>% rownames_to_column("Sample"), by = "Sample")
@@ -62,7 +63,7 @@ alpha_plot <- ggplot(alpha_df, aes(x = ColorGroup, y = Shannon, fill = ColorGrou
   geom_violin(trim = FALSE, alpha = 0.6) +
   geom_boxplot(width = 0.2, outlier.shape = NA, fill = "white") +
   geom_jitter(width = 0.15, size = 2) +
-  scale_fill_manual(values = custom_colors) +
+  scale_fill_manual(values = custom_colors,labels = c("AY" = "Ayos", "AK" = "Akonolinga", "Other" = "Other")) +
   theme_pubr(base_size = 14) +
   labs(title = "Alpha Diversity (Shannon)", x = "Sample Group", y = "Shannon Index")
 
@@ -75,7 +76,7 @@ ordination <- ordinate(physeq, method = "PCoA", distance = bray_dist)
 beta_plot <- plot_ordination(physeq, ordination, color = "ColorGroup") +
   geom_point(size = 3, alpha = 0.8) +
   stat_ellipse(type = "norm", linetype = "dashed", level = 0.95) +
-  scale_color_manual(values = custom_colors) +
+  scale_color_manual(values = custom_colors, labels = c("AY" = "Ayos", "AK" = "Akonolinga", "Other" = "Other")) +
   theme_pubr(base_size = 14) +
   labs(title = "Beta Diversity (PCoA, Bray-Curtis)", color = "Sample Group")
 

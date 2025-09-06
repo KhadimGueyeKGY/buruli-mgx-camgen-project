@@ -22,8 +22,8 @@ suppressMessages({
 #  Parameters (adapt as needed)
 # -----------------------------
 
-SITE <- "ayos"  # "akonolinga" or "ayos"
-SITESET <- "A"     # ayos = A, akonolinga = B
+SITE <- "akonolinga"  # "akonolinga" or "ayos"
+SITESET <- "B"     # ayos = A, akonolinga = B
 
 
 KRKN_FILE <- file.path("..", "output", paste0("16srna_buruli_", SITE, "_set", SITESET),

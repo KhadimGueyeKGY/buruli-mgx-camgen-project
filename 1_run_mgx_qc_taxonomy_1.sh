@@ -8,8 +8,8 @@ set -e
 # ================================
 
 # === CONFIGURATION ===
-SITE="ayos"                  # Change to "akonolinga" or "ayos"
-site="A"                     # ayos = A, akonolinga = B
+SITE="akonolinga"                  # Change to "akonolinga" or "ayos"
+site="B"                     # ayos = A, akonolinga = B
 KRAKEN_DB="$(realpath ~/kraken2_db)"
 BRACKEN_DB="$KRAKEN_DB"      # Bracken database built from the same Kraken2 DB
 NCORES=4                     # Number of CPU threads to use
@@ -20,57 +20,57 @@ output_dir="../output/16srna_buruli_${SITE}_set${site}"
 metadata_tsv="../fastq_pass_${SITE}.tsv"
 
 # === Create Output Directories ===
-mkdir -p "$output_dir"/{renamed_fastq,raw_fastqc,filtered_fastq,filtered_fastqc,multiqc_raw,multiqc_filtered,kraken2_results,kraken2_reports,bracken_results,krona_plots}
+#mkdir -p "$output_dir"/{renamed_fastq,raw_fastqc,filtered_fastq,filtered_fastqc,multiqc_raw,multiqc_filtered,kraken2_results,kraken2_reports,bracken_results,krona_plots}
 
 # === Step 0: Create barcode → sample_id mapping from metadata ===
-declare -A sample_map
-while IFS=$'\t' read -r site sample_id barcode ub_status lesion_size lesion_category treatment; do
-  sample_map["$barcode"]="$sample_id"
-done < <(tail -n +2 "$metadata_tsv")
+# declare -A sample_map
+# while IFS=$'\t' read -r site sample_id barcode ub_status lesion_size lesion_category treatment; do
+#   sample_map["$barcode"]="$sample_id"
+# done < <(tail -n +2 "$metadata_tsv")
 
 # === Step 1: Rename FASTQ files using metadata mapping ===
-echo "Renaming FASTQ files..."
-for f in "$input_dir"/barcode*.fastq.gz; do
-  barcode=$(basename "$f" .fastq.gz)
-  sample_id="${sample_map[$barcode]}"
-  if [[ -n "$sample_id" ]]; then
-    cp "$f" "$output_dir/renamed_fastq/${sample_id}.fastq.gz"
-    echo "Renamed $barcode.fastq.gz → ${sample_id}.fastq.gz"
-  else
-    echo "⚠️  Warning: No mapping found for $barcode — file not renamed"
-  fi
-done
+# echo "Renaming FASTQ files..."
+# for f in "$input_dir"/barcode*.fastq.gz; do
+#   barcode=$(basename "$f" .fastq.gz)
+#   sample_id="${sample_map[$barcode]}"
+#   if [[ -n "$sample_id" ]]; then
+#     cp "$f" "$output_dir/renamed_fastq/${sample_id}.fastq.gz"
+#     echo "Renamed $barcode.fastq.gz → ${sample_id}.fastq.gz"
+#   else
+#     echo "⚠️  Warning: No mapping found for $barcode — file not renamed"
+#   fi
+# done
 
 # === Step 2: Run FastQC on raw files + MultiQC summary ===
-echo "Running FastQC on raw files..."
-fastqc "$output_dir/renamed_fastq"/*.fastq.gz -o "$output_dir/raw_fastqc" --threads $NCORES
-multiqc "$output_dir/raw_fastqc" -o "$output_dir/multiqc_raw"
+# echo "Running FastQC on raw files..."
+# fastqc "$output_dir/renamed_fastq"/*.fastq.gz -o "$output_dir/raw_fastqc" --threads $NCORES
+# multiqc "$output_dir/raw_fastqc" -o "$output_dir/multiqc_raw"
 
 # === Step 3: Filtering reads with NanoFilt + keep only samples ≥10,000 reads ===
-echo "Filtering FASTQ files (keeping only samples with ≥10,000 reads)..."
-for f in "$output_dir/renamed_fastq"/*.fastq.gz; do
-  base=$(basename "$f" .fastq.gz)
+# echo "Filtering FASTQ files (keeping only samples with ≥10,000 reads)..."
+# for f in "$output_dir/renamed_fastq"/*.fastq.gz; do
+#   base=$(basename "$f" .fastq.gz)
 
-  # Filter reads: quality ≥10, length ≥1000 bp
-  zcat "$f" | NanoFilt -q 10 -l 1000 | gzip > "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
+#   # Filter reads: quality ≥10, length ≥1000 bp
+#   zcat "$f" | NanoFilt -q 10 -l 1000 | gzip > "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
 
-  # Count number of reads (4 lines per read in FASTQ format)
-  read_count=$(zcat "$output_dir/filtered_fastq/${base}.filtered.fastq.gz" | wc -l)
-  read_count=$((read_count / 4))
+#   # Count number of reads (4 lines per read in FASTQ format)
+#   read_count=$(zcat "$output_dir/filtered_fastq/${base}.filtered.fastq.gz" | wc -l)
+#   read_count=$((read_count / 4))
 
-  # Apply threshold: keep only samples with ≥10,000 reads
-  if (( read_count < 10000 )); then
-    echo "⚠️  $base excluded (only $read_count reads after filtering)"
-    rm "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
-  else
-    echo "✅  $base kept ($read_count reads)"
-  fi
-done
+#   # Apply threshold: keep only samples with ≥10,000 reads
+#   if (( read_count < 10000 )); then
+#     echo "⚠️  $base excluded (only $read_count reads after filtering)"
+#     rm "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
+#   else
+#     echo "✅  $base kept ($read_count reads)"
+#   fi
+# done
 
 # === Step 4: FastQC on filtered files + MultiQC summary ===
-echo "Running FastQC on filtered files..."
-fastqc "$output_dir/filtered_fastq"/*.filtered.fastq.gz -o "$output_dir/filtered_fastqc" --threads $NCORES
-multiqc "$output_dir/filtered_fastqc" -o "$output_dir/multiqc_filtered"
+# echo "Running FastQC on filtered files..."
+# fastqc "$output_dir/filtered_fastq"/*.filtered.fastq.gz -o "$output_dir/filtered_fastqc" --threads $NCORES
+# multiqc "$output_dir/filtered_fastqc" -o "$output_dir/multiqc_filtered"
 
 # === Step 5: Kraken2 Classification + Bracken abundance estimation ===
 echo "Running Kraken2 + Bracken..."

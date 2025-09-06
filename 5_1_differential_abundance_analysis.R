@@ -2,6 +2,7 @@
 
 # ----------------------------------------
 # Differential abundance analysis - Buruli vs Non-Buruli
+# Extended with heatmap improvements, Gram classification, and summary stats
 # ----------------------------------------
 
 # Load required libraries
@@ -10,13 +11,14 @@ suppressPackageStartupMessages({
   library(DESeq2)
   library(pheatmap)
   library(ggplot2)
+  library(ggpubr)
 })
 
 # ----------------------------------------
 # 0. User parameters
 # ----------------------------------------
-SITE <- "akonolinga"   # "akonolinga" or "ayos"
-SITESET <- "B"         # "A" for Ayos, "B" for Akonolinga
+SITE <- "ayos"   # "akonolinga" or "ayos"
+SITESET <- "A"         # "A" for Ayos, "B" for Akonolinga
 
 KRAKEN_FILE <- paste0("../output/16srna_buruli_", SITE, "_set", SITESET, "/combined_kraken_cleaned.csv")
 METADATA_FILE <- paste0("../fastq_pass_", SITE, ".tsv")
@@ -124,24 +126,81 @@ volcano <- ggplot(res, aes(x = log2FoldChange, y = -log10(padj))) +
        x = "Log2 Fold Change", y = "-log10 adjusted p-value") +
   theme_minimal()
 
-ggsave(file.path(OUT_DIR, "volcano_plot.png"), volcano, width = 7, height = 5)
+#ggsave(file.path(OUT_DIR, "volcano_plot.png"), volcano, width = 7, height = 5)
 
 # ----------------------------------------
 # 9. Heatmap of significant taxa
 # ----------------------------------------
 top_taxa <- res %>%
   arrange(desc(abs(log2FoldChange))) %>%
-  slice_head(n = 10) %>%
+  slice_head(n = 20) %>%   # keep top 20 for clearer view
   pull(Taxon)
 
 mat <- counts(dds, normalized = TRUE)[top_taxa, ]
+
 pheatmap(log1p(mat),
          annotation_col = metadata_filtered["condition"],
-         main = paste("Top 10 taxa -", SITE),
+         main = paste("Top taxa -", SITE),
+         labels_col = colnames(mat),  # sample codes on X
          filename = file.path(OUT_DIR, "heatmap_top_taxa.png"))
 
 # ----------------------------------------
-# 10. Export results
+# 10. Separate taxa by condition (Buruli-specific, nonBuruli-specific, shared)
 # ----------------------------------------
-write_csv(res, file.path(OUT_DIR, "differential_abundance_results.csv"))
-cat("✅ Results saved to:", file.path(OUT_DIR, "differential_abundance_results.csv"), "\n")
+buruli_taxa <- res %>% filter(Significant & log2FoldChange > 1) %>% pull(Taxon)
+nonburuli_taxa <- res %>% filter(Significant & log2FoldChange < -1) %>% pull(Taxon)
+shared_taxa <- res %>% filter(!Significant) %>% pull(Taxon)
+
+cat("Buruli-specific taxa:", length(buruli_taxa), "\n")
+cat("nonBuruli-specific taxa:", length(nonburuli_taxa), "\n")
+cat("Shared taxa:", length(shared_taxa), "\n")
+
+# ----------------------------------------
+# 11. Gram-positive vs Gram-negative analysis (at genus level)
+# ----------------------------------------
+# Rough classification dictionary (extend if needed)
+gram_dict <- tibble(
+  Genus = c("Staphylococcus", "Bacillus", "Clostridium", "Lactobacillus", "Mycobacterium", "Escherichia", "Pseudomonas", "Salmonella"),
+  Gram = c("Positive", "Positive", "Positive", "Positive", "Positive", "Negative", "Negative", "Negative")
+)
+
+kraken_genus <- kraken %>%
+  mutate(Genus = word(TaxonName, 1)) %>%   # first word = genus
+  group_by(Sample, Genus) %>%
+  summarise(Reads = sum(Reads), .groups = "drop") %>%
+  left_join(metadata_filtered %>% rownames_to_column("Sample"), by = "Sample") %>%
+  left_join(gram_dict, by = "Genus") %>%
+  mutate(Gram = ifelse(is.na(Gram), "Unknown", Gram))
+
+gram_plot <- kraken_genus %>%
+  group_by(condition, Gram) %>%
+  summarise(TotalReads = sum(Reads), .groups = "drop") %>%
+  ggplot(aes(x = condition, y = TotalReads, fill = Gram)) +
+  geom_bar(stat = "identity", position = "stack") +
+  theme_minimal() +
+  labs(title = paste("Gram-positive vs Gram-negative bacteria -", SITE),
+       x = "Condition", y = "Total Reads")
+
+#ggsave(file.path(OUT_DIR, "gram_positive_negative.png"), gram_plot, width = 7, height = 5)
+
+# ----------------------------------------
+# 12. Summary stats: species and reads per condition
+# ----------------------------------------
+summary_stats <- kraken %>%
+  left_join(metadata_filtered %>% rownames_to_column("Sample"), by = "Sample") %>%
+  group_by(condition) %>%
+  summarise(
+    TotalReads = sum(Reads),
+    TotalSpecies = n_distinct(TaxonName)
+  )
+
+write_csv(summary_stats, file.path(OUT_DIR, "summary_species_reads.csv"))
+cat("✅ Summary stats saved\n")
+
+# ----------------------------------------
+# 13. Panel of main plots
+# ----------------------------------------
+panel <- ggarrange(volcano, gram_plot, ncol = 2, labels = c("A", "B"))
+ggsave(file.path(OUT_DIR, "panel_volcano_gram.png"), panel, width = 12, height = 6, dpi = 300)
+
+cat("✅ All plots generated in:", OUT_DIR, "\n")

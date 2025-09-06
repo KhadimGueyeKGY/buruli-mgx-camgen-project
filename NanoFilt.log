@@ -126,3 +126,121 @@
 2025-08-31 12:34:02,525 NanoFilt finished.
 2025-08-31 12:34:03,811 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
 2025-08-31 12:34:04,975 NanoFilt finished.
+2025-09-05 13:04:18,263 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:07:39,819 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:09:09,350 NanoFilt finished.
+2025-09-05 13:09:30,146 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:10:03,861 NanoFilt finished.
+2025-09-05 13:10:20,539 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:12:55,054 NanoFilt finished.
+2025-09-05 13:13:12,964 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:13:16,982 NanoFilt finished.
+2025-09-05 13:13:33,641 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:14:57,290 NanoFilt finished.
+2025-09-05 13:15:07,453 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:16:49,438 NanoFilt finished.
+2025-09-05 13:17:07,388 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:18:27,880 NanoFilt finished.
+2025-09-05 13:18:44,602 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:20:04,242 NanoFilt finished.
+2025-09-05 13:20:22,205 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:20:38,251 NanoFilt finished.
+2025-09-05 13:20:46,377 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:20:50,390 NanoFilt finished.
+2025-09-05 13:20:52,203 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:22:42,221 NanoFilt finished.
+2025-09-05 13:22:50,737 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:23:48,079 NanoFilt finished.
+2025-09-05 13:24:13,182 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:25:32,685 NanoFilt finished.
+2025-09-05 13:25:38,661 NanoFilt finished.
+2025-09-05 13:25:44,527 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:25:44,827 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:27:47,475 NanoFilt finished.
+2025-09-05 13:27:52,020 NanoFilt finished.
+2025-09-05 13:27:56,041 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:28:02,908 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:29:42,951 NanoFilt finished.
+2025-09-05 13:29:52,662 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:29:54,952 NanoFilt finished.
+2025-09-05 13:30:06,847 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:32:15,022 NanoFilt finished.
+2025-09-05 13:32:29,695 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:32:44,643 NanoFilt finished.
+2025-09-05 13:33:00,870 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:35:16,243 NanoFilt finished.
+2025-09-05 13:35:30,631 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:35:45,128 NanoFilt finished.
+2025-09-05 13:36:00,390 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:38:18,150 NanoFilt finished.
+2025-09-05 13:38:33,384 NanoFilt finished.
+2025-09-05 13:38:33,687 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:38:37,415 NanoFilt finished.
+2025-09-05 13:38:39,566 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:38:48,495 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:40:14,725 NanoFilt finished.
+2025-09-05 13:40:24,844 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:40:43,248 NanoFilt finished.
+2025-09-05 13:40:54,726 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:42:30,796 NanoFilt finished.
+2025-09-05 13:42:41,165 NanoFilt finished.
+2025-09-05 13:42:41,307 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:42:56,406 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:42:55,893 NanoFilt finished.
+2025-09-05 13:42:57,004 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:43:03,423 NanoFilt finished.
+2025-09-05 13:43:04,983 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:43:49,230 NanoFilt finished.
+2025-09-05 13:43:57,686 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:44:10,341 NanoFilt finished.
+2025-09-05 13:44:17,656 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:44:51,433 NanoFilt finished.
+2025-09-05 13:44:55,902 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:44:56,051 NanoFilt finished.
+2025-09-05 13:44:57,238 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:45:13,205 NanoFilt finished.
+2025-09-05 13:45:23,755 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:45:35,438 NanoFilt finished.
+2025-09-05 13:45:37,672 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:46:06,456 NanoFilt finished.
+2025-09-05 13:46:14,105 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:46:57,238 NanoFilt finished.
+2025-09-05 13:47:06,183 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:47:52,918 NanoFilt finished.
+2025-09-05 13:47:57,841 NanoFilt finished.
+2025-09-05 13:47:58,504 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:48:06,651 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:48:09,641 NanoFilt finished.
+2025-09-05 13:48:10,806 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:48:33,420 NanoFilt finished.
+2025-09-05 13:48:38,016 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:49:20,816 NanoFilt finished.
+2025-09-05 13:49:27,234 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:49:29,148 NanoFilt finished.
+2025-09-05 13:49:35,581 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:50:18,038 NanoFilt finished.
+2025-09-05 13:50:25,330 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:50:56,831 NanoFilt finished.
+2025-09-05 13:51:05,925 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:51:40,868 NanoFilt finished.
+2025-09-05 13:51:46,749 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:52:10,001 NanoFilt finished.
+2025-09-05 13:52:15,506 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:52:17,990 NanoFilt finished.
+2025-09-05 13:52:19,305 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:52:21,362 NanoFilt finished.
+2025-09-05 13:52:22,786 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:53:11,787 NanoFilt finished.
+2025-09-05 13:53:18,728 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:53:55,305 NanoFilt finished.
+2025-09-05 13:54:39,827 NanoFilt finished.
+2025-09-05 13:54:50,065 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:56:16,747 NanoFilt finished.
+2025-09-05 13:56:22,851 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:58:21,432 NanoFilt finished.
+2025-09-05 13:58:30,142 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 13:59:59,301 NanoFilt finished.
+2025-09-05 14:00:09,679 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 14:00:16,897 NanoFilt finished.
+2025-09-05 14:00:18,614 NanoFilt 2.8.0 started with arguments Namespace(logfile='NanoFilt.log', input=<_io.TextIOWrapper name='<stdin>' mode='r' encoding='utf-8'>, length=1000, maxlength=1000000000000.0, quality=10, minGC=0.0, maxGC=1.0, headcrop=None, tailcrop=None, summary=None, readtype='1D', GC_filter=False)
+2025-09-05 14:02:11,723 NanoFilt finished.
