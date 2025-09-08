@@ -82,8 +82,9 @@ The pipeline is composed of the following steps:
    Rscript 2_qc_summary_plots.R
    bash 3_plot_taxonomic_composition.sh
    Rscript 4_1_alpha_beta_diversity.R
-   Rscript 5_1_differential_abundance_analysis.R
-   Rscript 6_1_cooccurrence_network.R
+   Rscript 4_2_alpha_beta_diversity_two_sites.R
+   Rscript 5_2_differential_abundance_analysis_both_sites.R
+   Rscript 6_2_cooccurrence_network_both_sites.R
    python3 7_clinical_correlation.py
    ```
 
