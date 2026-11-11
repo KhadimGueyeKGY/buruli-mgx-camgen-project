@@ -50,8 +50,8 @@ if [[ -f "$KRONA_DIR/Krona_${SITE}_10pct.txt" ]]; then
     ktImportText -o "$OUTPUT_DIR/Krona_${SITE}_10pct.html" "$KRONA_DIR/Krona_${SITE}_10pct.txt"
 fi
 
-echo "✅ Finished:"
-echo "   - Stacked barplots at species/genus/phylum: $OUTPUT_DIR"
-echo "   - Per-sample Krona plots: $KRONA_DIR"
-echo "   - Combined Kraken2 Krona plot: $OUTPUT_DIR/combined_krona_all.html"
-echo "   - Site Krona plots (all + 10% cutoff): $OUTPUT_DIR/Krona_${SITE}_*.html"
+echo " Finished:"
+echo " - Stacked barplots at species/genus/phylum: $OUTPUT_DIR"
+echo " - Per-sample Krona plots: $KRONA_DIR"
+echo " - Combined Kraken2 Krona plot: $OUTPUT_DIR/combined_krona_all.html"
+echo " - Site Krona plots (all + 10% cutoff): $OUTPUT_DIR/Krona_${SITE}_*.html"

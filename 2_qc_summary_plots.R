@@ -7,7 +7,7 @@ library(cowplot)  # for theme improvements
 SITE <- "ayos"  # Change to "akonolinga" or "ayos"
 site <- "A"     # ayos = A, akonolinga = B
 
-# === Construct Paths Dynamically ===
+# === Construct Paths ynamically ===
 multiqc_raw <- paste0("../output/16srna_buruli_", SITE, "_set", site, "/multiqc_raw/multiqc_data/multiqc_general_stats.txt")
 multiqc_filtered <- paste0("../output/16srna_buruli_", SITE, "_set", site, "/multiqc_filtered/multiqc_data/multiqc_general_stats.txt")
 output_dir <- paste0("../output/plot_", SITE, "_set", site)
@@ -31,12 +31,12 @@ p1 <- ggplot(qc_raw, aes(x = reorder(Sample, -FastQC_mqc.generalstats.fastqc.tot
 ggsave(file.path(output_dir, "total_reads_before_filter.pdf"), plot = p1, width = 10, height = 5)
 ggsave(file.path(output_dir, "total_reads_before_filter.png"), plot = p1, width = 10, height = 5, dpi = 300)
 
-# === Plot 2: Read Length Distribution (Before Filtering) - per sample ===
+# === Plot 2: Read Length istribution (Before Filtering) - per sample ===
 p2 <- ggplot(qc_raw, aes(x = Sample, y = FastQC_mqc.generalstats.fastqc.avg_sequence_length)) +
   geom_violin(fill = "#009E73", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.2, outlier.shape = NA, fill = "white") +
   theme_classic(base_size = 16) +
-  labs(title = paste("Read Length Distribution (Before Filtering) -", SITE),
+  labs(title = paste("Read Length istribution (Before Filtering) -", SITE),
        x = "Sample", y = "Average Read Length") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 10),
         plot.title = element_text(face = "bold", hjust = 0.5))
@@ -61,7 +61,7 @@ message("Samples retained after cutoff: ", nrow(qc_filtered_cut), "/", nrow(qc_f
 # === Plot 3: Total Reads per Sample (After Filtering & Cutoff) ===
 p3 <- ggplot(qc_filtered_cut, aes(x = reorder(Sample, -FastQC_mqc.generalstats.fastqc.total_sequences), 
                                   y = FastQC_mqc.generalstats.fastqc.total_sequences)) +
-  geom_col(fill = "#D55E00", width = 0.7) +
+  geom_col(fill = "#55E00", width = 0.7) +
   theme_classic(base_size = 16) +
   labs(title = paste("Total Reads per Sample (After Filtering, ≥0.1% Cutoff) -", SITE),
        x = "Sample", y = "Total Reads (retained)") +
@@ -71,12 +71,12 @@ p3 <- ggplot(qc_filtered_cut, aes(x = reorder(Sample, -FastQC_mqc.generalstats.f
 ggsave(file.path(output_dir, "total_reads_after_filter_cutoff.pdf"), plot = p3, width = 10, height = 5)
 ggsave(file.path(output_dir, "total_reads_after_filter_cutoff.png"), plot = p3, width = 10, height = 5, dpi = 300)
 
-# === Plot 4: Read Length Distribution (After Filtering & Cutoff) - per sample ===
+# === Plot 4: Read Length istribution (After Filtering & Cutoff) - per sample ===
 p4 <- ggplot(qc_filtered_cut, aes(x = Sample, y = FastQC_mqc.generalstats.fastqc.avg_sequence_length)) +
   geom_violin(fill = "#F0E442", alpha = 0.7, trim = FALSE) +
   geom_boxplot(width = 0.2, outlier.shape = NA, fill = "white") +
   theme_classic(base_size = 16) +
-  labs(title = paste("Read Length Distribution (After Filtering, ≥0.1% Cutoff) -", SITE),
+  labs(title = paste("Read Length istribution (After Filtering, ≥0.1% Cutoff) -", SITE),
        x = "Sample", y = "Average Read Length") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 10),
         plot.title = element_text(face = "bold", hjust = 0.5))
@@ -87,4 +87,4 @@ ggsave(file.path(output_dir, "read_length_after_filter_cutoff.png"), plot = p4, 
 # === Save filtered metadata for downstream analysis ===
 write_tsv(qc_filtered_cut, file.path(output_dir, "qc_filtered_pass_cutoff.tsv"))
 
-message("✅ All publication-ready QC plots generated successfully with cutoff applied.")
+message("All publication-ready QC plots generated successfully with cutoff applied.")

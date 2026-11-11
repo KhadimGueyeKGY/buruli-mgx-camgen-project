@@ -131,7 +131,7 @@ for var in CLINICAL_NUMERIC:
         plt.savefig(os.path.join(OUTDIR, f"{var}_scatter_panel.png"))
         plt.close()
     else:
-        print(f"⚠️ {var} not found in metadata")
+        print(f"{var} not found in metadata")
 
 # -------------------------------
 # 5. Correlation: categorical vars (panel boxplots)
@@ -169,6 +169,6 @@ for var in CLINICAL_CATEGORICAL:
         plt.savefig(os.path.join(OUTDIR, f"{var}_boxplot_panel.png"))
         plt.close()
     else:
-        print(f"⚠️ {var} not found in metadata")
+        print(f"{var} not found in metadata")
 
-print("✅ Clinical correlation analysis completed")
+print("Clinical correlation analysis completed")

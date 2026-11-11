@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
 
 # ----------------------------------------
-# Differential abundance analysis - Buruli vs Non-Buruli
+# ifferential abundance analysis - Buruli vs Non-Buruli
 # Extended with heatmap improvements, Gram classification, and summary stats
 # ----------------------------------------
 
 # Load required libraries
 suppressPackageStartupMessages({
   library(tidyverse)
-  library(DESeq2)
+  library(ESeq2)
   library(pheatmap)
   library(ggplot2)
   library(ggpubr)
@@ -21,21 +21,21 @@ SITE <- "ayos"   # "akonolinga" or "ayos"
 SITESET <- "A"         # "A" for Ayos, "B" for Akonolinga
 
 KRAKEN_FILE <- paste0("../output/16srna_buruli_", SITE, "_set", SITESET, "/combined_kraken_cleaned.csv")
-METADATA_FILE <- paste0("../fastq_pass_", SITE, ".tsv")
+METAATA_FILE <- paste0("../fastq_pass_", SITE, ".tsv")
 UB_COL <- paste0("UB_status_", SITE)  # Buruli status column
 
-OUT_DIR <- paste0("../output/plot_", SITE, "_set", SITESET, "/differential_abundance/")
-dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
+OUT_IR <- paste0("../output/plot_", SITE, "_set", SITESET, "/differential_abundance/")
+dir.create(OUT_IR, showWarnings = FALSE, recursive = TRUE)
 
 # ----------------------------------------
 # 1. Load data
 # ----------------------------------------
-cat("🔍 Processing site:", SITE, "\n")
+cat("Processing site:", SITE, "\n")
 
 kraken <- read_csv(KRAKEN_FILE, col_types = cols()) %>%
   mutate(Reads = as.numeric(Reads))
 
-metadata <- read_tsv(METADATA_FILE, col_types = cols())
+metadata <- read_tsv(METAATA_FILE, col_types = cols())
 
 # ----------------------------------------
 # 2. Handle duplicate taxa
@@ -57,13 +57,13 @@ kraken_wide <- kraken %>%
   as.matrix()
 
 count_mat <- round(kraken_wide)
-cat("✅ Kraken table dimensions:", dim(count_mat), "\n")
+cat("Kraken table dimensions:", dim(count_mat), "\n")
 
 # ----------------------------------------
 # 4. Align metadata with count matrix
 # ----------------------------------------
 sample_col <- paste0("16srna_pos_", SITE)
-if (!sample_col %in% colnames(metadata)) stop(paste("❌ Column", sample_col, "not found"))
+if (!sample_col %in% colnames(metadata)) stop(paste(" Column", sample_col, "not found"))
 
 metadata <- metadata %>%
   mutate(Sample = .data[[sample_col]])
@@ -73,11 +73,11 @@ metadata_filtered <- metadata %>%
   column_to_rownames("Sample")
 
 common_samples <- intersect(colnames(count_mat), rownames(metadata_filtered))
-if (length(common_samples) == 0) stop("❌ No matching samples between metadata and Kraken table")
+if (length(common_samples) == 0) stop(" No matching samples between metadata and Kraken table")
 
 count_mat <- count_mat[, common_samples, drop = FALSE]
 metadata_filtered <- metadata_filtered[common_samples, , drop = FALSE]
-cat("✅ Number of matching samples:", length(common_samples), "\n")
+cat("Number of matching samples:", length(common_samples), "\n")
 
 # ----------------------------------------
 # 5. Encode condition
@@ -86,22 +86,22 @@ metadata_filtered$condition <- factor(
   ifelse(metadata_filtered[[UB_COL]] == "positive", "Buruli", "nonBuruli"),
   levels = c("nonBuruli", "Buruli")
 )
-cat("✅ Condition encoded\n")
+cat("Condition encoded\n")
 
 # ----------------------------------------
-# 6. Create DESeq2 object and filter low-prevalence taxa
+# 6. Create ESeq2 object and filter low-prevalence taxa
 # ----------------------------------------
-dds <- DESeqDataSetFromMatrix(countData = count_mat,
-                              colData = metadata_filtered,
+dds <- ESeqataSetFromMatrix(countata = count_mat,
+                              colata = metadata_filtered,
                               design = ~ condition)
 
 # Filter taxa present in at least 2 samples
 keep_taxa <- rowSums(counts(dds) > 0) >= 2
 dds <- dds[keep_taxa, ]
 
-# Run DESeq2 using poscounts
-dds <- DESeq(dds, sfType = "poscounts")
-cat("✅ DESeq2 analysis completed\n")
+# Run ESeq2 using poscounts
+dds <- ESeq(dds, sfType = "poscounts")
+cat("ESeq2 analysis completed\n")
 
 # ----------------------------------------
 # 7. Extract differential abundance results
@@ -126,7 +126,7 @@ volcano <- ggplot(res, aes(x = log2FoldChange, y = -log10(padj))) +
        x = "Log2 Fold Change", y = "-log10 adjusted p-value") +
   theme_minimal()
 
-#ggsave(file.path(OUT_DIR, "volcano_plot.png"), volcano, width = 7, height = 5)
+#ggsave(file.path(OUT_IR, "volcano_plot.png"), volcano, width = 7, height = 5)
 
 # ----------------------------------------
 # 9. Heatmap of significant taxa
@@ -142,7 +142,7 @@ pheatmap(log1p(mat),
          annotation_col = metadata_filtered["condition"],
          main = paste("Top taxa -", SITE),
          labels_col = colnames(mat),  # sample codes on X
-         filename = file.path(OUT_DIR, "heatmap_top_taxa.png"))
+         filename = file.path(OUT_IR, "heatmap_top_taxa.png"))
 
 # ----------------------------------------
 # 10. Separate taxa by condition (Buruli-specific, nonBuruli-specific, shared)
@@ -181,7 +181,7 @@ gram_plot <- kraken_genus %>%
   labs(title = paste("Gram-positive vs Gram-negative bacteria -", SITE),
        x = "Condition", y = "Total Reads")
 
-#ggsave(file.path(OUT_DIR, "gram_positive_negative.png"), gram_plot, width = 7, height = 5)
+#ggsave(file.path(OUT_IR, "gram_positive_negative.png"), gram_plot, width = 7, height = 5)
 
 # ----------------------------------------
 # 12. Summary stats: species and reads per condition
@@ -194,13 +194,13 @@ summary_stats <- kraken %>%
     TotalSpecies = n_distinct(TaxonName)
   )
 
-write_csv(summary_stats, file.path(OUT_DIR, "summary_species_reads.csv"))
-cat("✅ Summary stats saved\n")
+write_csv(summary_stats, file.path(OUT_IR, "summary_species_reads.csv"))
+cat("Summary stats saved\n")
 
 # ----------------------------------------
 # 13. Panel of main plots
 # ----------------------------------------
 panel <- ggarrange(volcano, gram_plot, ncol = 2, labels = c("A", "B"))
-ggsave(file.path(OUT_DIR, "panel_volcano_gram.png"), panel, width = 12, height = 6, dpi = 300)
+ggsave(file.path(OUT_IR, "panel_volcano_gram.png"), panel, width = 12, height = 6, dpi = 300)
 
-cat("✅ All plots generated in:", OUT_DIR, "\n")
+cat("All plots generated in:", OUT_IR, "\n")

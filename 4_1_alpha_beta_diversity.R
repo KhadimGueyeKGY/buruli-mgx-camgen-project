@@ -1,6 +1,6 @@
 # ==============================
 # 4_alpha_beta_diversity.R
-# 16S Metagenomics - Alpha and Beta Diversity
+# 16S Metagenomics - Alpha and Beta iversity
 # ==============================
 
 # === Load Required Libraries ===
@@ -21,7 +21,7 @@ dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 
 # ==============================
-# 1️⃣ Combine Kraken2 Bracken Species reports
+# 1⃣ Combine Kraken2 Bracken Species reports
 # ==============================
 message("Combining Kraken2 reports...")
 
@@ -41,10 +41,10 @@ kraken_combined <- bind_rows(kraken_list) %>%
 
 # Save combined CSV
 write_csv(kraken_combined, combined_csv_file)
-message("✅ Combined Kraken2 CSV saved: ", combined_csv_file)
+message("Combined Kraken2 CSV saved: ", combined_csv_file)
 
 # ==============================
-# 2️⃣ Create phyloseq object
+# 2⃣ Create phyloseq object
 # ==============================
 message("Creating phyloseq object...")
 
@@ -59,22 +59,22 @@ abundance_matrix <- kraken_combined %>%
 otu_table_ps <- otu_table(abundance_matrix, taxa_are_rows = TRUE)
 
 # Sample metadata (update Group info if available)
-sample_metadata <- data.frame(SampleID = colnames(abundance_matrix))
-rownames(sample_metadata) <- sample_metadata$SampleID
-sample_metadata$Group <- sample_metadata$SampleID  # Replace with actual group/lesion info
+sample_metadata <- data.frame(SampleI = colnames(abundance_matrix))
+rownames(sample_metadata) <- sample_metadata$SampleI
+sample_metadata$Group <- sample_metadata$SampleI  # Replace with actual group/lesion info
 
 sample_data_ps <- sample_data(sample_metadata)
 
 physeq_object <- phyloseq(otu_table_ps, sample_data_ps)
 
 # ==============================
-# 3️⃣ Alpha Diversity
+# 3⃣ Alpha iversity
 # ==============================
 message("Calculating alpha diversity...")
 
 alpha_df <- estimate_richness(physeq_object, measures = c("Shannon", "Simpson", "Chao1")) %>%
-  rownames_to_column("SampleID") %>%
-  left_join(sample_metadata, by = "SampleID")
+  rownames_to_column("SampleI") %>%
+  left_join(sample_metadata, by = "SampleI")
 
 # Alpha diversity plots (boxplot + violin)
 alpha_plot_shannon <- ggplot(alpha_df, aes(x = Group, y = Shannon, fill = Group)) +
@@ -82,7 +82,7 @@ alpha_plot_shannon <- ggplot(alpha_df, aes(x = Group, y = Shannon, fill = Group)
   geom_boxplot(width = 0.2, outlier.shape = NA, fill = "white") +
   geom_jitter(width = 0.15, size = 2) +
   theme_minimal(base_size = 16) +
-  labs(title = paste("Alpha Diversity - Shannon Index (", SITE, ")", sep = ""),
+  labs(title = paste("Alpha iversity - Shannon Index (", SITE, ")", sep = ""),
        x = "Group", y = "Shannon Index") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "none")
@@ -91,7 +91,7 @@ ggsave(file.path(plot_dir, paste0("4_alpha_shannon_violin_boxplot_", SITE, "_set
        plot = alpha_plot_shannon, width = 10, height = 7, dpi = 300)
 
 # ==============================
-# 4️⃣ Beta Diversity
+# 4⃣ Beta iversity
 # ==============================
 message("Calculating beta diversity (Bray-Curtis, PCoA)...")
 
@@ -103,7 +103,7 @@ ordination_bray <- ordinate(physeq_object, method = "PCoA", distance = bray_dist
 beta_plot <- plot_ordination(physeq_object, ordination_bray, color = "Group") +
   geom_point(size = 4, alpha = 0.8) +
   theme_minimal(base_size = 16) +
-  labs(title = paste("Beta Diversity - Bray Curtis PCoA (", SITE, ")", sep = ""),
+  labs(title = paste("Beta iversity - Bray Curtis PCoA (", SITE, ")", sep = ""),
        x = "PCoA1", y = "PCoA2") +
   theme(legend.position = "right")
 
@@ -111,6 +111,6 @@ ggsave(file.path(plot_dir, paste0("4_beta_bray_pcoa_", SITE, "_set", site, ".png
        plot = beta_plot, width = 10, height = 7, dpi = 300)
 
 # ==============================
-# Done
+# one
 # ==============================
-message("✅ Alpha and Beta diversity plots generated successfully in: ", output_dir)
+message("Alpha and Beta diversity plots generated successfully in: ", output_dir)

@@ -37,7 +37,7 @@ metadata_tsv="../fastq_pass_${SITE}.tsv"
 #     cp "$f" "$output_dir/renamed_fastq/${sample_id}.fastq.gz"
 #     echo "Renamed $barcode.fastq.gz → ${sample_id}.fastq.gz"
 #   else
-#     echo "⚠️  Warning: No mapping found for $barcode — file not renamed"
+#     echo "Warning: No mapping found for $barcode file not renamed"
 #   fi
 # done
 
@@ -60,10 +60,10 @@ metadata_tsv="../fastq_pass_${SITE}.tsv"
 
 #   # Apply threshold: keep only samples with ≥10,000 reads
 #   if (( read_count < 10000 )); then
-#     echo "⚠️  $base excluded (only $read_count reads after filtering)"
+#     echo "$base excluded (only $read_count reads after filtering)"
 #     rm "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
 #   else
-#     echo "✅  $base kept ($read_count reads)"
+#     echo "$base kept ($read_count reads)"
 #   fi
 # done
 
@@ -118,7 +118,7 @@ done
 
 # === Final Messages ===
 echo "=================================================="
-echo "✅ Taxonomic composition analysis complete for site: $SITE"
-echo "✅ Bracken results: $output_dir/bracken_results"
-echo "✅ Krona plots: $output_dir/krona_plots"
+echo " Taxonomic composition analysis complete for site: $SITE"
+echo " Bracken results: $output_dir/bracken_results"
+echo " Krona plots: $output_dir/krona_plots"
 echo "=================================================="

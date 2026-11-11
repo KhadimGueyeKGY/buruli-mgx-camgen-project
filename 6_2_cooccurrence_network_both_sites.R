@@ -20,9 +20,9 @@ build_network_plot <- function(site, set_label) {
   
   KRKN_FILE <- file.path("..", "output",
                          paste0("16srna_buruli_", site, "_set", set_label),
-                         "combined_kraken_cleaned.csv")
-  OUT_DIR <- file.path("..", "output", "plots_combined_sites")
-  if (!dir.exists(OUT_DIR)) dir.create(OUT_DIR, recursive = TRUE)
+ "combined_kraken_cleaned.csv")
+  OUT_IR <- file.path("..", "output", "plots_combined_sites")
+  if (!dir.exists(OUT_IR)) dir.create(OUT_IR, recursive = TRUE)
   
   # Read data
   kraken <- read_csv(KRKN_FILE, show_col_types = FALSE) %>%
@@ -89,7 +89,7 @@ final_plot <- grid.arrange(p1, p2, ncol = 2,
 
 # Save
 OUT_IMG <- file.path("..", "output", "plots_combined_sites",
-                     "cooccurrence_networks_combined.png")
+ "cooccurrence_networks_combined.png")
 ggsave(OUT_IMG, final_plot, width = 14, height = 7, dpi = 300)
 
-message("✅ Combined panel plot saved to: ", OUT_IMG)
+message("Combined panel plot saved to: ", OUT_IMG)

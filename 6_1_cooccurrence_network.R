@@ -4,8 +4,8 @@
 # Microbial co-occurrence network (Spearman correlation)
 # For 16S rRNA amplicon sequencing data
 #
-# Author: [Your Name]
-# Date: [YYYY-MM-DD]
+# Auteur : Khadim Gueye
+# ate: [YYYY-MM-]
 # ==========================================================
 
 # -----------------------------
@@ -27,13 +27,13 @@ SITESET <- "B"     # ayos = A, akonolinga = B
 
 
 KRKN_FILE <- file.path("..", "output", paste0("16srna_buruli_", SITE, "_set", SITESET),
-                       "combined_kraken_cleaned.csv")
-METADATA_FILE <- file.path("..", paste0("fastq_pass_", SITE, ".tsv"))
-OUT_DIR <- file.path("..", "output", paste0("plot_", SITE, "_set", SITESET))
-OUT_IMG <- file.path(OUT_DIR, "cooccurrence_network.png")
+ "combined_kraken_cleaned.csv")
+METAATA_FILE <- file.path("..", paste0("fastq_pass_", SITE, ".tsv"))
+OUT_IR <- file.path("..", "output", paste0("plot_", SITE, "_set", SITESET))
+OUT_IMG <- file.path(OUT_IR, "cooccurrence_network.png")
 
 # Create output directory if not exists
-if (!dir.exists(OUT_DIR)) dir.create(OUT_DIR, recursive = TRUE)
+if (!dir.exists(OUT_IR)) dir.create(OUT_IR, recursive = TRUE)
 
 # -----------------------------
 #  1. Read Kraken counts
@@ -117,9 +117,9 @@ if (nrow(kraken_wide) > 4) {
   # -----------------------------
   ggsave(OUT_IMG, p, width = 10, height = 8, dpi = 300)
   
-  message("✅ Network saved to: ", OUT_IMG)
+  message("Network saved to: ", OUT_IMG)
   
 } else {
   message("Not enough taxa (n=", nrow(kraken_wide),
-          ") for correlation network. Need >4 taxa.")
+ ") for correlation network. Need >4 taxa.")
 }

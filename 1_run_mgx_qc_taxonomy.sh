@@ -1,124 +1,79 @@
 #!/bin/bash
-set -e
+# QC and taxonomic classification of the full length 16S amplicon runs, both sites.
+#
+# Reads are merged per barcode, filtered with NanoFilt at Q10 and 1000 bp, and
+# classified against a SILVA SSU Ref NR99 Kraken2 database. The earlier database
+# contained no bacterial sequences, so every report was archaeal and 96 percent of
+# reads were unclassified. SILVA stops at genus, so Bracken is run at genus, family
+# and phylum, not species.
+#
+# Usage: bash 1_run_mgx_qc_taxonomy.sh [ayos|akonolinga]
+#
+# Auteur : Khadim Gueye
 
-# ================================
-# Metagenomic Analysis Pipeline
-# Site-specific pipeline for Buruli ulcer project
-# Author: Khadim
-# ================================
+set -euo pipefail
 
-# === CONFIGURATION ===
-SITE="ayos"                  # Change to "akonolinga" or "ayos"
-site="A"                     # ayos = A, akonolinga = B
-KRAKEN_DB="$(realpath ~/kraken2_db)"
-BRACKEN_DB="$KRAKEN_DB"      # Bracken database built from the same Kraken2 DB
-NCORES=4                     # Number of CPU threads to use
+ROOT="$HOME/khadim/Francis-job"
+RAW_ROOT="$ROOT/data/raw_16s_buruli/16srna_metagnomics_buruli_2025"
+OUT_ROOT="$ROOT/data/16s_metagenomics/analysis_2026"
+KRAKEN_DB="${KRAKEN_DB:-$HOME/DATABASE/kraken2_silva138.2_16S}"
+BRACKEN="$HOME/DATABASE/Bracken/bracken"
+NCORES="${NCORES:-48}"
+MIN_QUAL=10
+MIN_LEN=1000
+MIN_READS=10000
+BRACKEN_READ_LEN=1500
+export PATH="$HOME/.local/bin:$PATH"
 
-# === Input and Output Directories ===
-input_dir="../16srna_metagnomics_buruli_2025/16srna_buruli_${SITE}_set${site}/fastq_pass/all_fastq"
-output_dir="../output/16srna_buruli_${SITE}_set${site}"
-metadata_tsv="../fastq_pass_${SITE}.tsv"
+declare -A SET=( [ayos]=A [akonolinga]=B )
+SITES=("${1:-ayos akonolinga}")
+read -r -a SITES <<< "${SITES[*]}"
 
-# === Create Output Directories ===
-mkdir -p "$output_dir"/{renamed_fastq,raw_fastqc,filtered_fastq,filtered_fastqc,multiqc_raw,multiqc_filtered,kraken2_results,kraken2_reports,bracken_results,krona_plots}
+for SITE in "${SITES[@]}"; do
+  s="${SET[$SITE]}"
+  in_dir="$RAW_ROOT/16srna_buruli_${SITE}_set${s}/fastq_pass"
+  out="$OUT_ROOT/${SITE}_set${s}"
+  mkdir -p "$out"/{merged_fastq,filtered_fastq,filtered_fastqc,kraken2_reports,kraken2_results,bracken_results,krona_plots}
 
-# === Step 0: Create barcode → sample_id mapping from metadata ===
-declare -A sample_map
-while IFS=$'\t' read -r site sample_id barcode ub_status lesion_size lesion_category treatment; do
-  sample_map["$barcode"]="$sample_id"
-done < <(tail -n +2 "$metadata_tsv")
+  echo "[$(date '+%F %T')] $SITE: merging barcodes"
+  find "$in_dir" -mindepth 1 -maxdepth 1 -type d -name 'barcode*' -printf '%f\n' | sort | \
+  xargs -P "$NCORES" -I{} bash -c 'cat "$1/$2"/*.fastq.gz > "$3/$2.fastq.gz"' _ "$in_dir" {} "$out/merged_fastq"
 
-# === Step 1: Rename FASTQ files using metadata mapping ===
-echo "Renaming FASTQ files..."
-for f in "$input_dir"/barcode*.fastq.gz; do
-  barcode=$(basename "$f" .fastq.gz)
-  sample_id="${sample_map[$barcode]}"
-  if [[ -n "$sample_id" ]]; then
-    cp "$f" "$output_dir/renamed_fastq/${sample_id}.fastq.gz"
-    echo "Renamed $barcode.fastq.gz → ${sample_id}.fastq.gz"
-  else
-    echo "⚠️  Warning: No mapping found for $barcode — file not renamed"
-  fi
+  echo "[$(date '+%F %T')] $SITE: filtering Q>=$MIN_QUAL L>=$MIN_LEN"
+  export MIN_QUAL MIN_LEN
+  find "$out/merged_fastq" -name '*.fastq.gz' -printf '%f\n' | sed 's/.fastq.gz//' | sort | \
+  xargs -P "$NCORES" -I{} bash -c 'zcat "$1/$2.fastq.gz" | NanoFilt -q "$MIN_QUAL" -l "$MIN_LEN" | gzip > "$3/$2.filtered.fastq.gz"' \
+        _ "$out/merged_fastq" {} "$out/filtered_fastq"
+
+  echo -e "barcode\traw_reads\tfiltered_reads\tkept" > "$out/read_counts.tsv"
+  for f in "$out/filtered_fastq"/*.filtered.fastq.gz; do
+    b=$(basename "$f" .filtered.fastq.gz)
+    raw=$(( $(zcat "$out/merged_fastq/$b.fastq.gz" | wc -l) / 4 ))
+    n=$(( $(zcat "$f" | wc -l) / 4 ))
+    if (( n < MIN_READS )); then rm -f "$f"; k=no; else k=yes; fi
+    echo -e "$b\t$raw\t$n\t$k" >> "$out/read_counts.tsv"
+  done
+
+  echo "[$(date '+%F %T')] $SITE: FastQC"
+  fastqc "$out/filtered_fastq"/*.filtered.fastq.gz -o "$out/filtered_fastqc" --threads "$NCORES" --quiet
+
+  echo "[$(date '+%F %T')] $SITE: Kraken2"
+  for f in "$out/filtered_fastq"/*.filtered.fastq.gz; do
+    b=$(basename "$f" .filtered.fastq.gz)
+    kraken2 --db "$KRAKEN_DB" --threads "$NCORES" --gzip-compressed \
+            --report "$out/kraken2_reports/$b.report.txt" \
+            --output "$out/kraken2_results/$b.kraken" "$f"
+  done
+
+  echo "[$(date '+%F %T')] $SITE: Bracken"
+  for r in "$out/kraken2_reports"/*.report.txt; do
+    b=$(basename "$r" .report.txt)
+    for lvl in P F G; do
+      "$BRACKEN" -d "$KRAKEN_DB" -i "$r" -o "$out/bracken_results/$b.bracken_$lvl.txt" \
+                 -w "$out/bracken_results/$b.bracken_$lvl.report.txt" \
+                 -r "$BRACKEN_READ_LEN" -l "$lvl" -t 1 || echo "bracken failed at $lvl for $b"
+    done
+  done
+
+  echo "[$(date '+%F %T')] $SITE: done, output in $out"
 done
-
-# === Step 2: Run FastQC on raw files + MultiQC summary ===
-echo "Running FastQC on raw files..."
-fastqc "$output_dir/renamed_fastq"/*.fastq.gz -o "$output_dir/raw_fastqc" --threads $NCORES
-multiqc "$output_dir/raw_fastqc" -o "$output_dir/multiqc_raw"
-
-# === Step 3: Filtering reads with NanoFilt + keep only samples ≥10,000 reads ===
-echo "Filtering FASTQ files (keeping only samples with ≥10,000 reads)..."
-for f in "$output_dir/renamed_fastq"/*.fastq.gz; do
-  base=$(basename "$f" .fastq.gz)
-
-  # Filter reads: quality ≥10, length ≥1000 bp
-  zcat "$f" | NanoFilt -q 10 -l 1000 | gzip > "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
-
-  # Count number of reads (4 lines per read in FASTQ format)
-  read_count=$(zcat "$output_dir/filtered_fastq/${base}.filtered.fastq.gz" | wc -l)
-  read_count=$((read_count / 4))
-
-  # Apply threshold: keep only samples with ≥10,000 reads
-  if (( read_count < 10000 )); then
-    echo "⚠️  $base excluded (only $read_count reads after filtering)"
-    rm "$output_dir/filtered_fastq/${base}.filtered.fastq.gz"
-  else
-    echo "✅  $base kept ($read_count reads)"
-  fi
-done
-
-# === Step 4: FastQC on filtered files + MultiQC summary ===
-echo "Running FastQC on filtered files..."
-fastqc "$output_dir/filtered_fastq"/*.filtered.fastq.gz -o "$output_dir/filtered_fastqc" --threads $NCORES
-multiqc "$output_dir/filtered_fastqc" -o "$output_dir/multiqc_filtered"
-
-# === Step 5: Kraken2 Classification + Bracken abundance estimation ===
-echo "Running Kraken2 + Bracken..."
-for fq in "$output_dir/filtered_fastq"/*.filtered.fastq.gz; do
-  base=$(basename "$fq" .filtered.fastq.gz)
-  echo "Classifying $base..."
-
-  # Kraken2 classification
-  kraken2 \
-    --db "$KRAKEN_DB" \
-    --threads $NCORES \
-    --gzip-compressed \
-    --report "$output_dir/kraken2_reports/${base}.report.txt" \
-    --output "$output_dir/kraken2_results/${base}.kraken" \
-    "$fq"
-
-  # Bracken abundance estimation (Genus level)
-  ./Bracken/bracken \
-    -d "$BRACKEN_DB" \
-    -i "$output_dir/kraken2_reports/${base}.report.txt" \
-    -o "$output_dir/bracken_results/${base}.bracken_genus.txt" \
-    -r 150 -l G -t $NCORES
-
-  # Bracken abundance estimation (Species level)
-  ./Bracken/bracken \
-    -d "$BRACKEN_DB" \
-    -i "$output_dir/kraken2_reports/${base}.report.txt" \
-    -o "$output_dir/bracken_results/${base}.bracken_species.txt" \
-    -r 150 -l S -t $NCORES
-done
-
-# === Step 6: Merge Bracken reports across all samples ===
-echo "Merging Bracken outputs..."
-python3 Bracken/analysis_scripts/combine_bracken_outputs.py --files "$output_dir"/bracken_results/*.bracken_genus.txt -o "$output_dir/bracken_results/all_samples_genus.txt"
-python3 Bracken/analysis_scripts/combine_bracken_outputs.py --files "$output_dir"/bracken_results/*.bracken_species.txt -o "$output_dir/bracken_results/all_samples_species.txt"
-
-# === Step 7: Krona Visualization ===
-echo "Generating Krona plots..."
-KRONA_TAX_PATH="Krona/KronaTools/taxonomy"
-
-for kr in "$output_dir/kraken2_results"/*.kraken; do
-  base=$(basename "$kr" .kraken)
-  ktImportTaxonomy -tax "$KRONA_TAX_PATH" "$kr" -o "$output_dir/krona_plots/${base}_krona.html"
-done
-
-# === Final Messages ===
-echo "=================================================="
-echo "✅ Taxonomic composition analysis complete for site: $SITE"
-echo "✅ Bracken results: $output_dir/bracken_results"
-echo "✅ Krona plots: $output_dir/krona_plots"
-echo "=================================================="

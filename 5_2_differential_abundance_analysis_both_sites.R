@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 
 # ----------------------------------------
-# Differential abundance analysis - Combined Sites (Ayos + Akonolinga)
+# ifferential abundance analysis - Combined Sites (Ayos + Akonolinga)
 # With site adjustment, Buruli effect, and direct site comparison
 # ----------------------------------------
 
 suppressPackageStartupMessages({
   library(tidyverse)
-  library(DESeq2)
+  library(ESeq2)
   library(pheatmap)
   library(ggplot2)
   library(ggpubr)
@@ -24,8 +24,8 @@ metadata_files <- paste0("../fastq_pass_", sites, ".tsv")
 ub_cols <- paste0("UB_status_", sites)
 sample_cols <- paste0("16srna_pos_", sites)
 
-OUT_DIR <- "../output/plots_combined_sites/"
-dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
+OUT_IR <- "../output/plots_combined_sites/"
+dir.create(OUT_IR, showWarnings = FALSE, recursive = TRUE)
 
 # ----------------------------------------
 # 1. Load Kraken + metadata for both sites
@@ -75,7 +75,7 @@ kraken_wide <- kraken %>%
   as.matrix()
 
 count_mat <- round(kraken_wide)
-cat("✅ Combined Kraken table dimensions:", dim(count_mat), "\n")
+cat("Combined Kraken table dimensions:", dim(count_mat), "\n")
 
 # ----------------------------------------
 # 3. Align metadata
@@ -85,7 +85,7 @@ metadata_filtered <- metadata %>%
   column_to_rownames("Sample")
 
 common_samples <- intersect(colnames(count_mat), rownames(metadata_filtered))
-if (length(common_samples) == 0) stop("❌ No matching samples")
+if (length(common_samples) == 0) stop(" No matching samples")
 
 count_mat <- count_mat[, common_samples, drop = FALSE]
 metadata_filtered <- metadata_filtered[common_samples, , drop = FALSE]
@@ -94,21 +94,21 @@ metadata_filtered$condition <- factor(metadata_filtered$condition,
                                       levels = c("nonBuruli", "Buruli"))
 metadata_filtered$site <- factor(metadata_filtered$site)
 
-cat("✅ Samples after alignment:", length(common_samples), "\n")
+cat("Samples after alignment:", length(common_samples), "\n")
 
 # ----------------------------------------
-# 4. DESeq2 with site adjustment
+# 4. ESeq2 with site adjustment
 # ----------------------------------------
-dds <- DESeqDataSetFromMatrix(countData = count_mat,
-                              colData = metadata_filtered,
+dds <- ESeqataSetFromMatrix(countata = count_mat,
+                              colata = metadata_filtered,
                               design = ~ site + condition)
 
 # Filter taxa
 keep_taxa <- rowSums(counts(dds) > 0) >= 2
 dds <- dds[keep_taxa, ]
 
-dds <- DESeq(dds, sfType = "poscounts")
-cat("✅ DESeq2 completed\n")
+dds <- ESeq(dds, sfType = "poscounts")
+cat("ESeq2 completed\n")
 
 # Results
 res_buruli <- results(dds, contrast = c("condition", "Buruli", "nonBuruli")) %>%
@@ -146,8 +146,8 @@ volcano_site <- ggplot(res_site, aes(x = log2FoldChange, y = -log10(padj))) +
   labs(title = "Volcano - Akonolinga vs Ayos") +
   theme_minimal()
 
-ggsave(file.path(OUT_DIR, "volcano_buruli.png"), volcano_buruli, width = 7, height = 5)
-ggsave(file.path(OUT_DIR, "volcano_site.png"), volcano_site, width = 7, height = 5)
+ggsave(file.path(OUT_IR, "volcano_buruli.png"), volcano_buruli, width = 7, height = 5)
+ggsave(file.path(OUT_IR, "volcano_site.png"), volcano_site, width = 7, height = 5)
 
 # ----------------------------------------
 # 6. Heatmaps
@@ -168,19 +168,19 @@ mat_site <- counts(dds, normalized = TRUE)[top_site, ]
 pheatmap(log1p(mat_buruli),
          annotation_col = metadata_filtered[, c("condition", "site")],
          main = "Top taxa - Buruli vs nonBuruli",
-         filename = file.path(OUT_DIR, "heatmap_buruli.png"))
+         filename = file.path(OUT_IR, "heatmap_buruli.png"))
 
 pheatmap(log1p(mat_site),
          annotation_col = metadata_filtered[, c("condition", "site")],
          main = "Top taxa - Akonolinga vs Ayos",
-         filename = file.path(OUT_DIR, "heatmap_site.png"))
+         filename = file.path(OUT_IR, "heatmap_site.png"))
 
 # ----------------------------------------
 # 7. Gram classification
 # ----------------------------------------
 gram_dict <- tibble(
   Genus = c("Staphylococcus", "Bacillus", "Clostridium", "Lactobacillus", "Mycobacterium", 
-            "Escherichia", "Pseudomonas", "Salmonella"),
+ "Escherichia", "Pseudomonas", "Salmonella"),
   Gram = c("Positive", "Positive", "Positive", "Positive", "Positive", "Negative", "Negative", "Negative")
 )
 
@@ -202,7 +202,7 @@ gram_plot <- kraken_genus %>%
   labs(title = "Gram-positive vs Gram-negative by site",
        x = "Condition", y = "Total Reads")
 
-ggsave(file.path(OUT_DIR, "gram_combined.png"), gram_plot, width = 9, height = 5)
+ggsave(file.path(OUT_IR, "gram_combined.png"), gram_plot, width = 9, height = 5)
 
 # ----------------------------------------
 # 8. Summary statistics
@@ -216,6 +216,6 @@ summary_stats <- kraken %>%
     .groups = "drop"
   )
 
-write_csv(summary_stats, file.path(OUT_DIR, "summary_species_reads_combined.csv"))
+write_csv(summary_stats, file.path(OUT_IR, "summary_species_reads_combined.csv"))
 
-cat("✅ Combined site analysis completed. Outputs in:", OUT_DIR, "\n")
+cat("Combined site analysis completed. Outputs in:", OUT_IR, "\n")

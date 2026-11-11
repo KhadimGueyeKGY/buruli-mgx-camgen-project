@@ -37,7 +37,7 @@ sample_metadata <- combined %>%
   distinct() %>%
   column_to_rownames("Sample")
 
-# 🔹 Assign color groups based on sample name prefix
+#  Assign color groups based on sample name prefix
 sample_metadata$ColorGroup <- ifelse(grepl("^AK", rownames(sample_metadata)), "AK",
                               ifelse(grepl("^AY", rownames(sample_metadata)), "AY", "Other"))
 
@@ -46,13 +46,13 @@ sample_ps <- sample_data(sample_metadata)
 # Build phyloseq object
 physeq <- phyloseq(otu_ps, sample_ps)
 
-# Define custom colors
+# efine custom colors
 custom_colors <- c("AK" = "#1f78b4",   # Blue AK = Akonolinga
-                   "AY" = "#33a02c",   # Green AY = Ayos
-                   "Other" = "grey50")
+ "AY" = "#33a02c",   # Green AY = Ayos
+ "Other" = "grey50")
 
 # ==============================
-# Alpha Diversity (Shannon)
+# Alpha iversity (Shannon)
 # ==============================
 
 alpha_df <- estimate_richness(physeq, measures = c("Shannon")) %>%
@@ -65,10 +65,10 @@ alpha_plot <- ggplot(alpha_df, aes(x = ColorGroup, y = Shannon, fill = ColorGrou
   geom_jitter(width = 0.15, size = 2) +
   scale_fill_manual(values = custom_colors,labels = c("AY" = "Ayos", "AK" = "Akonolinga", "Other" = "Other")) +
   theme_pubr(base_size = 14) +
-  labs(title = "Alpha Diversity (Shannon)", x = "Sample Group", y = "Shannon Index")
+  labs(title = "Alpha iversity (Shannon)", x = "Sample Group", y = "Shannon Index")
 
 # ==============================
-# Beta Diversity (Bray-Curtis PCoA)
+# Beta iversity (Bray-Curtis PCoA)
 # ==============================
 bray_dist <- phyloseq::distance(physeq, method = "bray")
 ordination <- ordinate(physeq, method = "PCoA", distance = bray_dist)
@@ -78,7 +78,7 @@ beta_plot <- plot_ordination(physeq, ordination, color = "ColorGroup") +
   stat_ellipse(type = "norm", linetype = "dashed", level = 0.95) +
   scale_color_manual(values = custom_colors, labels = c("AY" = "Ayos", "AK" = "Akonolinga", "Other" = "Other")) +
   theme_pubr(base_size = 14) +
-  labs(title = "Beta Diversity (PCoA, Bray-Curtis)", color = "Sample Group")
+  labs(title = "Beta iversity (PCoA, Bray-Curtis)", color = "Sample Group")
 
 # ==============================
 # Combine Plots (side by side)
@@ -90,4 +90,4 @@ final_plot <- ggarrange(alpha_plot, beta_plot,
 ggsave(file.path(output_dir, "alpha_beta_diversity_combined.png"),
        final_plot, width = 14, height = 6, dpi = 300)
 
-message("✅ Combined alpha+beta diversity plot saved in: ", output_dir)
+message("Combined alpha+beta diversity plot saved in: ", output_dir)

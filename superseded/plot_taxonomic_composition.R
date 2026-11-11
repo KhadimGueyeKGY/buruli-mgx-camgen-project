@@ -106,4 +106,4 @@ message("=== Writing Krona input files (≥10% taxa only) ===")
 write_krona_top10(df_species, "Species", opt$krona_dir)
 write_krona_top10(df_genus,   "Genus",   opt$krona_dir)
 
-message("✅ Done: barplots + Krona inputs generated")
+message("Done: barplots + Krona inputs generated")
