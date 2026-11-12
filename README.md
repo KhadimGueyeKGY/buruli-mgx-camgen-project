@@ -251,6 +251,10 @@ comparisons. A flat 10,000 read cutoff would rarefy at 22,563 reads and drop 8 s
 
 ## Output
 
+Each variable keeps one palette across the whole set, because several figures carry
+two of them at once: Buruli status is blue and orange, site is green and pink, Gram
+status is purple and gold.
+
 Figures and tables are written to `analysis_2026/figures/`, as PNG at 400 dpi and as
 PDF. Figures follow the order of the analysis plan. Panels share a figure only where
 they read together, and no figure is wider than 7.5 inches, so placing one in a 6.5

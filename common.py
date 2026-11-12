@@ -32,8 +32,11 @@ OTHER = "#9a9890"
 SEQUENTIAL = ["#fcfcfb", "#cde2fb", "#9ec5f4", "#6da7ec",
               "#3987e5", "#256abf", "#184f95", "#0d366b"]
 DIVERGING = ["#184f95", "#6da7ec", "#f0efec", "#f0a080", "#b93d1c"]
+# One palette per variable, the same in every figure. Site and Buruli status share
+# a figure more than once, so they cannot share colours: the beta diversity figure
+# coloured a panel by site and the next by group, with the same blue for both.
 GROUP_COLOUR = {"BU": "#2a78d6", "non-BU": "#eb6834"}
-SITE_COLOUR = {"ayos": "#2a78d6", "akonolinga": "#eb6834"}
+SITE_COLOUR = {"ayos": "#1baf7a", "akonolinga": "#e87ba4"}
 INK = "#0b0b0b"
 MUTED = "#52514e"
 SEED = 20261111
