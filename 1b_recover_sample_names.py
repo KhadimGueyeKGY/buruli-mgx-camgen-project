@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """
-Recover the barcode to sample_id mapping lost with the metadata sheets.
+Cross-check the barcode to sample_id mapping against the archived read counts.
 
-The archived QC table holds the FastQC read count of every sample that passed the
-10,000 read cutoff, measured on the filtered FASTQ. Rerunning the same NanoFilt
-settings reproduces those counts exactly, so each sample maps back to one barcode.
-The mapping is written only when every count is unique on both sides.
+The sample sheet is the source of the mapping. Before it was supplied, the mapping had
+been reconstructed by matching filtered read counts against the archived QC table,
+which was possible because the filter settings here reproduce the first run exactly.
+That reconstruction is kept as a check: for every sample the first run carried, the
+barcode whose read count matches must be the barcode the sample sheet names.
+
+A disagreement means either the filter settings drifted or the sample sheet is wrong,
+and both are worth knowing before any result is read.
+
+Run 1c_prepare_metadata.py first.
 
 Usage: python3 1b_recover_sample_names.py <site> <set_letter>
 
@@ -23,6 +29,7 @@ ARCHIVE_DIR = {"ayos": "plot_ayos_setA", "akonolinga": "plot_akonolinga_setB"}
 
 
 def archived(site):
+    """sample_id to the FastQC read count of the first run."""
     path = ARCHIVE / ARCHIVE_DIR[site] / "qc_filtered_pass_cutoff.tsv"
     with open(path) as fh:
         header = fh.readline().rstrip("\n").split("\t")
@@ -32,10 +39,19 @@ def archived(site):
 
 
 def observed(out_dir):
+    """barcode to the filtered read count measured here."""
     with open(out_dir / "read_counts.tsv") as fh:
         fh.readline()
-        return {f[0]: int(f[2])
-                for f in (line.rstrip("\n").split("\t") for line in fh) if f[3] == "yes"}
+        return {f[0]: int(f[2]) for f in (line.rstrip("\n").split("\t") for line in fh)}
+
+
+def official(out_dir):
+    """barcode to sample_id, as the sample sheet states it."""
+    with open(out_dir / "metadata.tsv") as fh:
+        header = fh.readline().rstrip("\n").split("\t")
+        b, s = header.index("barcode"), header.index("sample_id")
+        rows = [line.rstrip("\n").split("\t") for line in fh]
+    return {r[b]: r[s] for r in rows if r[b]}
 
 
 def main():
@@ -43,34 +59,30 @@ def main():
     out_dir = OUT_ROOT / f"{site}_set{letter}"
     want = archived(site)
     have = observed(out_dir)
+    sheet = official(out_dir)
 
-    for label, table in (("archived", want), ("observed", have)):
-        repeated = [n for n, c in Counter(table.values()).items() if c > 1]
-        if repeated:
-            print(f"{site}: {label} read counts are not unique: {repeated}")
-            return 1
+    repeated = [n for n, count in Counter(have.values()).items() if count > 1]
+    by_count = {n: b for b, n in have.items() if n not in repeated}
 
-    by_count = {n: b for b, n in have.items()}
-    mapping, missing = {}, []
+    agree, disagree, unmatched = [], [], []
     for sample, count in want.items():
-        if count in by_count:
-            mapping[by_count[count]] = sample
+        barcode = by_count.get(count)
+        if barcode is None:
+            unmatched.append(sample)
+        elif sheet.get(barcode) == sample:
+            agree.append(sample)
         else:
-            missing.append(sample)
+            disagree.append((sample, barcode, sheet.get(barcode)))
 
-    path = out_dir / "barcode_sample_map.tsv"
-    with open(path, "w") as fh:
-        fh.write("barcode\tsample_id\tfiltered_reads\n")
-        for barcode in sorted(mapping):
-            fh.write(f"{barcode}\t{mapping[barcode]}\t{have[barcode]}\n")
-
-    print(f"{site}: {len(mapping)} of {len(want)} archived samples matched, written to {path}")
-    for sample in missing:
-        print(f"  no barcode reproduces the archived count of {sample}")
-    extra = sorted(set(have) - set(mapping))
-    if extra:
-        print(f"  barcodes kept here but absent from the archived set: {', '.join(extra)}")
-    return 1 if missing else 0
+    print(f"{site}: {len(agree)} of {len(want)} archived samples confirm the sample sheet")
+    for sample, barcode, named in disagree:
+        print(f"  DISAGREEMENT {sample} reproduces the read count of {barcode}, "
+              f"which the sheet calls {named}")
+    for sample in unmatched:
+        print(f"  no barcode reproduces the archived read count of {sample}")
+    if repeated:
+        print(f"  read counts shared by more than one barcode, not usable as a key: {repeated}")
+    return 1 if disagree else 0
 
 
 if __name__ == "__main__":

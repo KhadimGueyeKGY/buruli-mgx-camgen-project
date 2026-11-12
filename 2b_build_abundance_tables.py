@@ -25,6 +25,8 @@ ROOT = Path.home() / "khadim/Francis-job"
 OUT_ROOT = ROOT / "data/16s_metagenomics/analysis_2026"
 SITES = {"ayos": "A", "akonolinga": "B"}
 LEVELS = {"P": "phylum", "F": "family", "G": "genus"}
+RANKS = {"D": "domain", "P": "phylum", "C": "class", "O": "order",
+         "F": "family", "G": "genus"}
 
 
 def parse_report(path):
@@ -73,9 +75,22 @@ def domain_totals(rows):
     return out
 
 
+def lineage(rows):
+    """taxid to its ranked ancestry, walked down the Bacteria subtree."""
+    out, stack = {}, []
+    for row in rows:
+        while stack and stack[-1]["indent"] >= row["indent"]:
+            stack.pop()
+        stack.append(row)
+        if row["rank"] in RANKS:
+            out[row["taxid"]] = {RANKS[r["rank"]]: r["name"]
+                                 for r in stack if r["rank"] in RANKS}
+    return out
+
+
 def collect():
     """counts[(site, level)][sample][taxid], the labels, and the domain totals."""
-    counts, labels, domains, names = {}, {}, {}, {}
+    counts, labels, domains, names, ancestry = {}, {}, {}, {}, {}
     for site, letter in SITES.items():
         out = OUT_ROOT / f"{site}_set{letter}"
         mapping = {}
@@ -93,13 +108,14 @@ def collect():
                 rows = parse_report(report)
                 if code == "G":
                     domains.setdefault(site, {})[sample] = domain_totals(rows)
+                    ancestry.update(lineage(subtree(rows, "Bacteria")))
                 table[sample] = {}
                 for row in subtree(rows, "Bacteria"):
                     if row["rank"] == code:
                         table[sample][row["taxid"]] = row["clade_reads"]
                         labels[row["taxid"]] = (row["name"], row["parent"])
             counts[(site, level)] = table
-    return counts, labels, domains
+    return counts, labels, domains, ancestry
 
 
 def resolve(labels):
@@ -112,8 +128,19 @@ def resolve(labels):
 
 
 def main():
-    counts, labels, domains = collect()
+    counts, labels, domains, ancestry = collect()
     label_of = resolve(labels)
+
+    rows = []
+    for taxid, ranks in ancestry.items():
+        if taxid in label_of and "genus" in ranks:
+            rows.append({"genus": label_of[taxid],
+                         **{r: ranks.get(r, "") for r in
+                            ("phylum", "class", "order", "family")}})
+    if rows:
+        frame = pd.DataFrame(rows).drop_duplicates(subset=["genus"]).sort_values("genus")
+        frame.to_csv(OUT_ROOT / "bacteria_lineage.tsv", sep="\t", index=False)
+        print(f"lineage: {len(frame)} genera written to {OUT_ROOT / 'bacteria_lineage.tsv'}")
 
     for site, letter in SITES.items():
         tables = OUT_ROOT / f"{site}_set{letter}/abundance_tables"

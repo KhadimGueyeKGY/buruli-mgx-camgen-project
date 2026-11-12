@@ -21,7 +21,7 @@ BRACKEN="$HOME/DATABASE/Bracken/bracken"
 NCORES="${NCORES:-48}"
 MIN_QUAL=10
 MIN_LEN=1000
-MIN_READS=10000
+MIN_READ_FRACTION=0.001   # a sample is kept when it holds this share of the run total
 BRACKEN_READ_LEN=1500
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -45,14 +45,24 @@ for SITE in "${SITES[@]}"; do
   xargs -P "$NCORES" -I{} bash -c 'zcat "$1/$2.fastq.gz" | NanoFilt -q "$MIN_QUAL" -l "$MIN_LEN" | gzip > "$3/$2.filtered.fastq.gz"' \
         _ "$out/merged_fastq" {} "$out/filtered_fastq"
 
-  echo -e "barcode\traw_reads\tfiltered_reads\tkept" > "$out/read_counts.tsv"
+  # Counted first, then thresholded: the cutoff is a share of the run total, as the
+  # analysis plan asks, so it cannot be applied before every barcode is counted.
+  : > "$out/counts.tmp"
   for f in "$out/filtered_fastq"/*.filtered.fastq.gz; do
     b=$(basename "$f" .filtered.fastq.gz)
     raw=$(( $(zcat "$out/merged_fastq/$b.fastq.gz" | wc -l) / 4 ))
     n=$(( $(zcat "$f" | wc -l) / 4 ))
-    if (( n < MIN_READS )); then rm -f "$f"; k=no; else k=yes; fi
-    echo -e "$b\t$raw\t$n\t$k" >> "$out/read_counts.tsv"
+    echo -e "$b\t$raw\t$n" >> "$out/counts.tmp"
   done
+  total=$(awk -F'\t' '{s+=$3} END{print s}' "$out/counts.tmp")
+  cutoff=$(awk -v t="$total" -v f="$MIN_READ_FRACTION" 'BEGIN{printf "%d", t*f}')
+  echo "[$(date '+%F %T')] $SITE: $total filtered reads, cutoff $cutoff"
+  echo -e "barcode\traw_reads\tfiltered_reads\tkept" > "$out/read_counts.tsv"
+  while IFS=$'\t' read -r b raw n; do
+    if (( n < cutoff )); then rm -f "$out/filtered_fastq/$b.filtered.fastq.gz"; k=no; else k=yes; fi
+    echo -e "$b\t$raw\t$n\t$k" >> "$out/read_counts.tsv"
+  done < "$out/counts.tmp"
+  rm -f "$out/counts.tmp"
 
   echo "[$(date '+%F %T')] $SITE: FastQC"
   fastqc "$out/filtered_fastq"/*.filtered.fastq.gz -o "$out/filtered_fastqc" --threads "$NCORES" --quiet
