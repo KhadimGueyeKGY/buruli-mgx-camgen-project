@@ -341,17 +341,24 @@ def check_pathways():
 
 
 def check_figures():
-    expected = ["Figure0_read_statistics", "Figure1_bacterial_composition",
-                "Figure2_top_genera", "Figure3_alpha_diversity",
-                "Figure4_beta_diversity", "Figure5_differential_abundance",
-                "Figure6_gram_composition", "Figure7_clinical_correlation",
-                "Figure8_cooccurrence_network", "Figure9_functional_profiling",
+    # Figures follow the order of the analysis plan. Panels are grouped only where
+    # they read together; nothing is merged at the cost of legibility.
+    expected = ["Figure1_read_statistics", "Figure2_phylum_composition",
+                "Figure3_top_genera", "Figure4_alpha_diversity",
+                "Figure5_beta_diversity", "Figure6_differential_abundance",
+                "Figure7_gram_composition", "Figure8_functional_profiling",
+                "Figure9_clinical_correlation", "Figure10_cooccurrence_network",
                 "FigureS1_classification_comparison"]
     for name in expected:
         for extension in ("png", "pdf"):
             path = FIG / f"{name}.{extension}"
             check(f"{name}.{extension} written and not empty",
                   path.exists() and path.stat().st_size > 2000)
+    # Nothing from an earlier numbering may survive in the published folder.
+    stale = sorted(path.name for path in FIG.glob("Figure*")
+                   if path.stem not in expected)
+    check("no figure from a superseded numbering is left behind", not stale,
+          str(stale[:4]) if stale else f"{len(expected)} figures")
 
 
 def main():

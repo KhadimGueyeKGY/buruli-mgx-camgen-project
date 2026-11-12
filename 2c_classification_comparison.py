@@ -112,7 +112,7 @@ def main():
     order = [(LABEL[s], r) for s in SITES for r in ("Previous database", "SILVA 138.2")]
     summary = summary.loc[order]
 
-    fig, ax = plt.subplots(figsize=(8.6, 2.9))
+    fig, ax = plt.subplots(figsize=(8.8, 3.6))
     left = np.zeros(len(order))
     for name, colour in zip(FRACTIONS, COLOURS):
         values = summary[name].to_numpy()
@@ -121,18 +121,22 @@ def main():
         for i, (v, l) in enumerate(zip(values, left)):
             if v >= 5:
                 ax.text(l + v / 2, i, f"{v:.1f}", ha="center", va="center",
-                        fontsize=7, color="white", fontweight="bold")
+                        fontsize=10, color="white", fontweight="bold")
         left += values
     ax.set_yticks(np.arange(len(order)))
-    ax.set_yticklabels([f"{site}\n{run}" for site, run in order], fontsize=7.5)
+    ax.set_yticklabels([f"{site}\n{run}" for site, run in order], fontsize=9.5)
     ax.set_xlim(0, 100)
     ax.set_xlabel("Mean percent of filtered reads", color=INK)
+    ax.set_ylabel("Site and reference database", color=INK)
     ax.set_title("Reads assigned before and after the database was rebuilt",
-                 loc="left", fontsize=9, fontweight="bold", color=INK)
-    ax.legend(loc="upper left", bbox_to_anchor=(1.005, 1.0), frameon=False,
-              fontsize=7.5, labelcolor=INK)
+                 loc="left", fontsize=11, fontweight="bold", color=INK, pad=12)
+    legend = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False,
+                       fontsize=9, labelcolor=INK, title="Assignment",
+                       handlelength=1.4, borderaxespad=0.0)
+    legend.get_title().set_fontsize(9)
+    legend.get_title().set_fontweight("bold")
     ax.invert_yaxis()
-    ax.tick_params(length=2)
+    ax.tick_params(length=3, width=0.9, labelsize=9)
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
 

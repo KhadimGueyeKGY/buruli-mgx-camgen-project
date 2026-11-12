@@ -100,11 +100,12 @@ def diversity_against_clinical(alpha):
 
 
 def figure(correlation, alpha, diversity_stats, chosen):
-    fig = plt.figure(figsize=(13.5, 9.0))
-    grid = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.25], hspace=0.40, wspace=0.30)
+    fig = plt.figure(figsize=(5.8, 10.4))
+    grid = fig.add_gridspec(2, 2, height_ratios=[2.25, 1.0], hspace=0.28,
+                            wspace=0.46)
     cmap = LinearSegmentedColormap.from_list("div", c.DIVERGING)
 
-    ax = fig.add_subplot(grid[:, 0])
+    ax = fig.add_subplot(grid[0, :])
     if correlation.empty:
         ax.axis("off")
     else:
@@ -128,28 +129,35 @@ def figure(correlation, alpha, diversity_stats, chosen):
                 if genus in sub.index and sub.loc[genus, "p_value"] < 0.05:
                     marker = "**" if sub.loc[genus, "p_adjusted_bh"] < 0.05 else "*"
                     ax.text(i + 0.5, j + 0.5, marker, ha="center", va="center",
-                            fontsize=8, color=c.INK)
+                            fontsize=11, fontweight="bold", color=c.INK)
         ax.set_yticks(np.arange(len(genera)) + 0.5)
-        ax.set_yticklabels(genera[::-1], fontsize=6.5)
+        ax.set_yticklabels([g[:18] + "..." if len(g) > 21 else g
+                            for g in genera[::-1]], fontsize=8)
+        ax.set_ylabel("Genus", color=c.INK)
         ax.set_xticks(np.arange(len(columns)) + 0.5)
-        ax.set_xticklabels([NICE[v] for _, v in columns], rotation=20, ha="right",
-                           fontsize=7.5)
+        ax.set_xticklabels([NICE[v] for _, v in columns], rotation=28, ha="right",
+                           fontsize=9.5)
+        ax.set_xlabel("Clinical variable, by site", color=c.INK, labelpad=6)
         for edge in np.cumsum([sum(1 for s, _ in columns if s == site)
                                for site in dict.fromkeys(s for s, _ in columns)])[:-1]:
             ax.axvline(edge, color=c.INK, linewidth=1.2)
         for site in dict.fromkeys(s for s, _ in columns):
             idx = [i for i, (s, _) in enumerate(columns) if s == site]
-            ax.text(np.mean(idx) + 0.5, len(genera) + 0.3, site, ha="center",
-                    va="bottom", fontsize=8.5, color=c.MUTED)
-        c.panel_title(ax, "A  Genus abundance against the clinical variables\n"
-                          "Spearman rho, * p < 0.05, ** BH < 0.05\nblank where the genus is not among the leading genera of that site", pad=22)
-        bar = fig.colorbar(mesh, ax=ax, pad=0.022, fraction=0.045)
-        bar.set_label("Spearman rho", color=c.INK, fontsize=8)
+            ax.text(np.mean(idx) + 0.5, len(genera) + 0.4, site, ha="center",
+                    va="bottom", fontsize=11, fontweight="bold", color=c.MUTED)
+        c.panel_title(ax, "A  Genus abundance against the clinical variables",
+                      pad=22)
+        bar = fig.colorbar(mesh, ax=ax, orientation="horizontal", pad=0.30,
+                           fraction=0.038, aspect=46)
+        bar.set_label("Spearman rho    * p below 0.05    "
+                      "** Benjamini-Hochberg below 0.05",
+                      color=c.INK, fontsize=8.5)
+        bar.ax.tick_params(labelsize=8.5)
         bar.outline.set_edgecolor(c.MUTED)
 
     rng = np.random.default_rng(c.SEED)
     for k, variable in enumerate(("lesion_category", "treatment")):
-        ax = fig.add_subplot(grid[k, 1])
+        ax = fig.add_subplot(grid[1, k])
         levels = [l for l, _ in sorted(VARIABLES[variable].items(), key=lambda kv: kv[1])]
         positions, ticks = [], []
         pos = 0.0
@@ -169,35 +177,39 @@ def figure(correlation, alpha, diversity_stats, chosen):
                         for item in parts[element]:
                             item.set(color=c.MUTED, linewidth=0.8)
                 if len(values):
-                    ax.scatter(rng.normal(pos, 0.06, len(values)), values, s=14,
+                    ax.scatter(rng.normal(pos, 0.06, len(values)), values, s=24,
                                color=c.SITE_COLOUR[site], edgecolor="white",
-                               linewidth=0.5, zorder=3)
+                               linewidth=0.6, zorder=3)
                 positions.append(pos)
-                ticks.append(f"{level}\n(n={len(values)})")
+                ticks.append(level)
                 pos += 1
-            pos += 0.6
+            pos += 1.0
         ax.set_xticks(positions)
-        ax.set_xticklabels(ticks, fontsize=6.5)
+        ax.set_xticklabels(ticks, fontsize=9)
         ax.set_ylabel("Shannon index", color=c.INK)
-        c.panel_title(ax, f"{'BC'[k]}  Shannon by {NICE[variable].lower()}", pad=12)
+        ax.set_xlabel(f"{NICE[variable]}, by site", color=c.INK, labelpad=40)
         row = diversity_stats[(diversity_stats["metric"] == "shannon") &
                               (diversity_stats["variable"] == variable)]
+        c.panel_title(ax, f"{'BC'[k]}  Shannon by {NICE[variable].lower()}", pad=24)
         if not row.empty:
-            note = "   ".join(
-                f"{r['site']} rho {r['spearman_rho']:.2f}, p {r['p_value']:.3f}"
-                for _, r in row.iterrows())
-            ax.text(0, 1.015, note, transform=ax.transAxes, fontsize=7,
-                    color=c.MUTED, va="bottom")
+            ax.text(0.0, 1.015, "   ".join(
+                f"{r['site']} rho {r['spearman_rho']:.2f}"
+                for _, r in row.iterrows()), transform=ax.transAxes, fontsize=8.5,
+                color=c.MUTED, va="bottom")
         c.tidy_axes(ax)
         for site, idx in zip(c.SITES, (range(0, len(levels)),
                                        range(len(levels), 2 * len(levels)))):
             chosen_pos = [positions[i] for i in idx if i < len(positions)]
             if chosen_pos:
-                ax.text(np.mean(chosen_pos), -0.19, c.LABEL[site], ha="center",
-                        va="top", fontsize=7.5, color=c.MUTED,
+                ax.text(np.mean(chosen_pos), -0.23, c.LABEL[site], ha="center",
+                        va="top", fontsize=10.5, fontweight="bold", color=c.MUTED,
                         transform=ax.get_xaxis_transform())
 
-    c.save(fig, "Figure7_clinical_correlation")
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=7,
+                          color=c.SITE_COLOUR[site], label=c.LABEL[site])
+               for site in c.SITES]
+    c.figure_legend(fig, handles, [h.get_label() for h in handles], title="Site")
+    c.save(fig, "Figure9_clinical_correlation")
 
 
 def main():

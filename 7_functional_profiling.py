@@ -263,8 +263,10 @@ def compare_pathways(abundance, names):
 
 
 def figure_pathways(results):
-    fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8),
-                             gridspec_kw={"width_ratios": [1, 1, 1.25], "wspace": 0.62})
+    fig = plt.figure(figsize=(5.4, 9.4))
+    grid = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.0], hspace=0.52, wspace=0.46)
+    axes = [fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1]),
+            fig.add_subplot(grid[1, :])]
     for k, site in enumerate(c.SITES):
         ax = axes[k]
         frame = results[results["site"] == c.LABEL[site]] if not results.empty \
@@ -276,19 +278,24 @@ def figure_pathways(results):
             c.tidy_axes(ax)
             continue
         y = -np.log10(frame["p_value"].clip(lower=1e-300))
-        for mask, colour, size, order in ((~frame["significant"], c.OTHER, 13, 2),
-                                          (frame["significant"], c.CATEGORICAL[0], 26, 3)):
+        for mask, colour, size, order, label in (
+                (~frame["significant"], c.OTHER, 24, 2, "not significant"),
+                (frame["significant"], c.CATEGORICAL[0], 50, 3, "BH p below 0.05")):
             ax.scatter(frame.loc[mask, "log2_fold_change"], y[mask], s=size,
-                       color=colour, edgecolor="white", linewidth=0.4, zorder=order)
+                       color=colour, edgecolor="white", linewidth=0.6, zorder=order,
+                       label=label)
         if frame["significant"].any():
             cut = frame.loc[frame["significant"], "p_value"].max()
             ax.axhline(-np.log10(cut), color=c.CATEGORICAL[1], linewidth=0.9,
                        linestyle=(0, (4, 2)), zorder=1)
         ax.axvline(0, color=c.MUTED, linewidth=0.4, zorder=0)
         ax.set_xlabel("log2 fold change, BU over non-BU", color=c.INK)
-        ax.set_ylabel("-log10 p", color=c.INK)
-        c.panel_title(ax, f"{'AB'[k]}  {c.LABEL[site]}, {len(frame)} pathways, "
-                          f"{int(frame['significant'].sum())} significant", pad=12)
+        ax.set_ylabel("-log10 p value", color=c.INK)
+        c.panel_title(ax, f"{'AB'[k]}  {c.LABEL[site]}, "
+                          f"{int(frame['significant'].sum())} of {len(frame)} "
+                          f"significant", pad=12)
+        if k == len(c.SITES) - 1:
+            c.side_legend(ax)
         c.tidy_axes(ax)
 
     ax = axes[2]
@@ -301,21 +308,25 @@ def figure_pathways(results):
         colours = [c.GROUP_COLOUR["BU"] if v > 0 else c.GROUP_COLOUR["non-BU"]
                    for v in ranked["log2_fold_change"]]
         ax.barh(positions, ranked["log2_fold_change"], height=0.68, color=colours,
-                edgecolor="white", linewidth=0.6)
+                edgecolor="white", linewidth=0.8)
         ax.set_yticks(positions)
-        ax.set_yticklabels([shorten(d or p) + f"  ({s})" for p, d, s in
+        # Site on one line and the pathway on the next, so the names do not push
+        # the figure wider than a page.
+        ax.set_yticklabels([f"{s}\n{shorten(d or p)}" for p, d, s in
                             zip(ranked["pathway"], ranked["description"],
-                                ranked["site"])], fontsize=6)
+                                ranked["site"])], fontsize=8.0,
+                           linespacing=1.3)
         ax.set_ylim(-0.7, len(ranked) - 0.3)
         ax.axvline(0, color=c.MUTED, linewidth=0.6)
         ax.set_xlabel("log2 fold change, BU over non-BU", color=c.INK)
-        c.panel_title(ax, "C  Fourteen lowest p values", pad=12)
+        ax.set_ylabel("Site and MetaCyc pathway", color=c.INK, labelpad=6)
+        c.panel_title(ax, "C  The fourteen lowest p values", pad=12)
         c.tidy_axes(ax, hide=("top", "right", "left"))
         handles = [plt.Rectangle((0, 0), 1, 1, color=c.GROUP_COLOUR[g],
-                                 label=f"higher in {g}") for g in c.GROUPS]
-        ax.legend(handles=handles, frameon=False, fontsize=7, labelcolor=c.INK,
-                  loc="lower left", bbox_to_anchor=(0.0, -0.24), ncol=2)
-    c.save(fig, "Figure9_functional_profiling")
+                                 label=g) for g in c.GROUPS]
+        c.side_legend(ax, handles=handles,
+                      labels=[h.get_label() for h in handles], title="Higher in")
+    c.save(fig, "Figure8_functional_profiling")
 
 
 def analyse(out):

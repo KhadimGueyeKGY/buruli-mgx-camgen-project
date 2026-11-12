@@ -62,11 +62,14 @@ def main():
     table.to_csv(c.FIG_DIR / "Table0_read_statistics.tsv", sep="\t", index=False,
                  float_format="%.3f")
 
-    fig = plt.figure(figsize=(13.5, 7.6))
-    grid = fig.add_gridspec(2, 2, height_ratios=[1.3, 1.0], width_ratios=[1.5, 1.0],
-                            hspace=0.78, wspace=0.24)
+    fig = plt.figure(figsize=(6.9, 6.6))
+    grid = fig.add_gridspec(2, 2, height_ratios=[1.55, 1.0], width_ratios=[1.0, 1.0],
+                            hspace=0.58, wspace=1.05)
 
-    order = table.copy()
+    # A barcode with no row in the sample sheet has no identity to show, so it stays
+    # in Table0 and out of the figure.
+    order = table[table["sample_id"].notna()].copy()
+    unnamed = int(table["sample_id"].isna().sum())
     order["site_rank"] = order["site"].map({c.LABEL[s]: i for i, s in enumerate(c.SITES)})
     order = order.sort_values(["site_rank", "label"]).reset_index(drop=True)
     xs = np.arange(len(order))
@@ -77,28 +80,30 @@ def main():
     ax.bar(xs, order["filtered_reads"] / 1000, width=0.78, color=c.CATEGORICAL[0],
            edgecolor="white", linewidth=0.5, label="After filtering")
     ax.set_yscale("log")
-    floor = max(order["filtered_reads"].replace(0, np.nan).min() / 1000 * 0.25, 1e-4)
-    ax.set_ylim(floor, order["raw_reads"].max() / 1000 * 2.2)
+    floor = max(order["filtered_reads"].replace(0, np.nan).min() / 1000 * 0.5, 5e-4)
+    ax.set_ylim(floor, order["raw_reads"].max() / 1000 * 2.6)
     for site, sub in order.groupby("site", sort=False):
         ax.hlines(sub["cutoff"].iloc[0] / 1000, sub.index.min() - 0.5,
                   sub.index.max() + 0.5, color=c.CATEGORICAL[1], linewidth=1.3,
-                  linestyle=(0, (4, 2)), zorder=4)
+                  linestyle=(0, (4, 2)), zorder=4,
+                  label="0.1 percent cutoff" if site == order["site"].iloc[0] else None)
     dropped = order.index[order["kept"] == "no"]
-    ax.scatter(dropped, np.full(len(dropped), floor * 1.35), marker="x", s=22,
-               color=c.CATEGORICAL[1], zorder=5, label="Below the cutoff")
-    ax.set_ylabel("Reads, thousands", color=c.INK)
+    ax.scatter(dropped, np.full(len(dropped), floor * 1.35), marker="x", s=40,
+               linewidth=1.8, color=c.CATEGORICAL[1], zorder=5,
+               label="Below the cutoff")
+    ax.set_ylabel("Reads, thousands, log scale", color=c.INK)
+    ax.set_xlabel("Sample", color=c.INK, labelpad=6)
     ax.set_xticks(xs)
-    ax.set_xticklabels(order["label"], rotation=90, fontsize=5)
+    ax.set_xticklabels(order["label"], rotation=90, fontsize=6.5)
     ax.set_xlim(-0.8, len(order) - 0.2)
-    c.panel_title(ax, "A  Reads per barcode, log scale", pad=28)
-    ax.legend(frameon=False, fontsize=7.5, labelcolor=c.INK, ncol=3,
-              loc="lower left", bbox_to_anchor=(0, 1.005))
+    c.panel_title(ax, "A  Reads per sample", pad=18)
+    c.side_legend(ax)
     c.tidy_axes(ax)
     for name, sub in order.groupby("site", sort=False):
-        ax.text(sub.index.to_numpy().mean(), 0.955, name, ha="center", va="top",
-                fontsize=8.5, color=c.MUTED, transform=ax.get_xaxis_transform())
-    ax.text(len(order) - 0.6, order["cutoff"].iloc[-1] / 1000, "  0.1 percent cutoff",
-            va="center", fontsize=7, color=c.CATEGORICAL[1])
+        ax.text(sub.index.to_numpy().mean(), 0.98, name, ha="center", va="top",
+                fontsize=10.5, fontweight="bold", color=c.MUTED,
+                transform=ax.get_xaxis_transform())
+
 
     ax = fig.add_subplot(grid[1, 0])
     rng = np.random.default_rng(c.SEED)
@@ -111,31 +116,38 @@ def main():
         for element in ("whiskers", "caps", "medians"):
             for item in parts[element]:
                 item.set(color=c.MUTED, linewidth=0.8)
-        ax.scatter(rng.normal(i, 0.055, len(values)), values, s=15,
-                   color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.5, zorder=3)
+        ax.scatter(rng.normal(i, 0.055, len(values)), values, s=26,
+                   color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.6, zorder=3)
     ax.set_xlim(-0.6, len(c.SITES) - 0.4)
     ax.set_xticks(range(len(c.SITES)))
     ax.set_xticklabels([c.LABEL[s] for s in c.SITES])
     ax.set_ylabel("Percent of reads retained", color=c.INK)
-    c.panel_title(ax, "B  Retained after Q10 and 1,000 bp filtering", pad=12)
+    ax.set_xlabel("Site", color=c.INK)
+    c.panel_title(ax, "B  Reads retained by filtering", pad=12)
+    handles = [plt.Line2D([], [], marker="o", linestyle="none", markersize=6,
+                          color=c.SITE_COLOUR[site], label=c.LABEL[site])
+               for site in c.SITES]
+    c.side_legend(ax, handles=handles, labels=[h.get_label() for h in handles],
+                  title="Site")
     c.tidy_axes(ax)
 
     ax = fig.add_subplot(grid[1, 1])
     for site in c.SITES:
         for series in profiles[site].values():
             ax.plot(series.index, series / series.sum(), color=c.SITE_COLOUR[site],
-                    linewidth=0.7, alpha=0.35)
-        ax.plot([], [], color=c.SITE_COLOUR[site], linewidth=1.8, label=c.LABEL[site])
+                    linewidth=0.9, alpha=0.35)
+        ax.plot([], [], color=c.SITE_COLOUR[site], linewidth=2.4, label=c.LABEL[site])
     ax.set_xlim(1000, 2000)
     ax.set_xlabel("Read length, bp", color=c.INK)
     ax.set_ylabel("Share of reads", color=c.INK)
-    c.panel_title(ax, "C  Length after filtering, one line per barcode", pad=12)
-    ax.legend(frameon=False, fontsize=7.5, labelcolor=c.INK)
+    c.panel_title(ax, "C  Read length after filtering", pad=12)
+    c.side_legend(ax, title="Site")
     c.tidy_axes(ax)
 
-    c.save(fig, "Figure0_read_statistics")
+    c.save(fig, "Figure1_read_statistics")
     kept = table[table["kept"] == "yes"]
-    print(f"{len(table)} barcodes, {len(kept)} above the cutoff")
+    print(f"{len(table)} barcodes, {len(kept)} above the cutoff, "
+          f"{unnamed} with no sample sheet row left out of the figure")
     print(f"median retained {table['retained_percent'].median():.1f} percent")
     print(kept.groupby(["site", "group"]).size().to_string())
 

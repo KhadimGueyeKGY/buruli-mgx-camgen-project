@@ -251,21 +251,26 @@ comparisons. A flat 10,000 read cutoff would rarefy at 22,563 reads and drop 8 s
 
 ## Output
 
-Figures and tables are written to `analysis_2026/figures/`.
+Figures and tables are written to `analysis_2026/figures/`, as PNG at 400 dpi and as
+PDF. Figures follow the order of the analysis plan. Panels share a figure only where
+they read together, and no figure is wider than 7.5 inches, so placing one in a 6.5
+inch Word column scales it by at least 0.82 and the body type stays above 7 points.
+Keys sit outside the axes on the right. Methods belong in this file, not on the
+figures.
 
 | File | Content |
 |---|---|
-| `Figure0_read_statistics` | Reads per barcode, share retained, read length |
-| `Figure1_bacterial_composition` | Phylum composition per sample and per group |
-| `Figure2_top_genera` | Twenty most abundant genera per sample |
-| `Figure3_alpha_diversity` | Observed genera, Shannon, Simpson, Chao1 |
-| `Figure4_beta_diversity` | Principal coordinates, both sites and per site |
-| `Figure5_differential_abundance` | Volcano plots and heatmaps, BU against non-BU |
-| `Figure6_gram_composition` | Gram positive share and mean Gram composition |
-| `Figure7_clinical_correlation` | Genus and diversity against the clinical variables |
-| `Figure8_cooccurrence_network` | Genus co-occurrence per site |
-| `Figure9_functional_profiling` | Predicted pathways, BU against non-BU |
-| `FigureS1_classification_comparison` | Reads assigned before and after the rebuild |
+| `Figure1_read_statistics` | Reads per sample, share retained, read length |
+| `Figure2_phylum_composition` | Phylum composition, per patient and per group |
+| `Figure3_top_genera` | The twenty most abundant genera |
+| `Figure4_alpha_diversity` | Observed genera, Shannon, Simpson, Chao1 |
+| `Figure5_beta_diversity` | Principal coordinates and every PERMANOVA |
+| `Figure6_differential_abundance` | Volcano and heatmap per site |
+| `Figure7_gram_composition` | Gram shares, mean and per patient |
+| `Figure8_functional_profiling` | Predicted MetaCyc pathways, BU against non-BU |
+| `Figure9_clinical_correlation` | Clinical variables against the community |
+| `Figure10_cooccurrence_network` | Genus co-occurrence per site |
+| `FigureS1_classification_comparison` | Classification before and after the rebuild |
 | `Table0_read_statistics.tsv` | Reads per barcode with the inclusion decision |
 | `Table1_phylum_composition.tsv` | Percent per phylum per sample, with group means |
 | `Table2_top_genera.tsv` | Forty leading genera, per site and per group |

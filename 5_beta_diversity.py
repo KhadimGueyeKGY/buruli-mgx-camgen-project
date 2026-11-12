@@ -34,7 +34,8 @@ def combined():
     return table[order], meta.loc[order]
 
 
-def ordination(ax, coords, explained, meta, colour_by, title, legend_loc="best"):
+def ordination(ax, coords, explained, meta, colour_by, title,
+               legend_title=None):
     values = meta[colour_by].fillna("unknown")
     palette = c.GROUP_COLOUR if colour_by == "group" else None
     categories = [g for g in c.GROUPS if g in set(values)] if colour_by == "group" \
@@ -42,14 +43,16 @@ def ordination(ax, coords, explained, meta, colour_by, title, legend_loc="best")
     for i, value in enumerate(categories):
         mask = (values == value).to_numpy()
         colour = palette[value] if palette else c.CATEGORICAL[i % len(c.CATEGORICAL)]
-        ax.scatter(coords[mask, 0], coords[mask, 1], s=26, color=colour,
-                   edgecolor="white", linewidth=0.6, label=str(value))
-    ax.axhline(0, color=c.MUTED, linewidth=0.4, zorder=0)
-    ax.axvline(0, color=c.MUTED, linewidth=0.4, zorder=0)
-    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent)", color=c.INK)
+        ax.scatter(coords[mask, 0], coords[mask, 1], s=46, color=colour,
+                   edgecolor="white", linewidth=0.8, label=str(value))
+    ax.axhline(0, color=c.MUTED, linewidth=0.6, zorder=0)
+    ax.axvline(0, color=c.MUTED, linewidth=0.6, zorder=0)
+    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent of the variation)",
+                  color=c.INK)
     ax.set_ylabel(f"PCo2 ({100 * explained[1]:.1f} percent)", color=c.INK)
-    c.panel_title(ax, title)
-    ax.legend(frameon=False, fontsize=7, labelcolor=c.INK, loc=legend_loc)
+    c.panel_title(ax, title, pad=12)
+    if legend_title:
+        c.side_legend(ax, title=legend_title)
     c.tidy_axes(ax)
 
 
@@ -84,30 +87,61 @@ def main():
     stats.to_csv(c.FIG_DIR / "Table6_beta_diversity_permanova.tsv", sep="\t",
                  index=False, float_format="%.5f")
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
+    fig = plt.figure(figsize=(6.9, 7.2))
+    grid = fig.add_gridspec(2, 2, hspace=0.62, wspace=1.15)
+
+    ax = fig.add_subplot(grid[0, 0])
     for site in c.SITES:
         mask = (meta["site"] == site).to_numpy()
-        axes[0].scatter(coords[mask, 0], coords[mask, 1], s=26,
-                        color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.6,
-                        label=c.LABEL[site])
-    axes[0].axhline(0, color=c.MUTED, linewidth=0.4, zorder=0)
-    axes[0].axvline(0, color=c.MUTED, linewidth=0.4, zorder=0)
-    axes[0].set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent)", color=c.INK)
-    axes[0].set_ylabel(f"PCo2 ({100 * explained[1]:.1f} percent)", color=c.INK)
-    c.panel_title(axes[0], f"A  Both sites, PERMANOVA F = {f_site:.2f}, p = {p_site:.4f}")
-    axes[0].legend(frameon=False, fontsize=7.5, labelcolor=c.INK)
-    c.tidy_axes(axes[0])
+        ax.scatter(coords[mask, 0], coords[mask, 1], s=46,
+                   color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.8,
+                   label=c.LABEL[site])
+    ax.axhline(0, color=c.MUTED, linewidth=0.6, zorder=0)
+    ax.axvline(0, color=c.MUTED, linewidth=0.6, zorder=0)
+    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent of the variation)",
+                  color=c.INK)
+    ax.set_ylabel(f"PCo2 ({100 * explained[1]:.1f} percent)", color=c.INK)
+    c.panel_title(ax, f"A  Both sites, F = {f_site:.2f}, p = {p_site:.4f}", pad=12)
+    c.side_legend(ax, title="Site")
+    c.tidy_axes(ax)
 
-    for ax, letter, site in zip(axes[1:], "BC", c.SITES):
+    for position, letter, site in zip(((0, 1), (1, 0)), "BC", c.SITES):
+        ax = fig.add_subplot(grid[position])
         _, sub_meta, _, (sub_coords, sub_explained) = per_site[site]
         row = stats[(stats["scope"] == c.LABEL[site]) & (stats["factor"] == "group")]
-        caption = f"{letter}  {c.LABEL[site]}, Buruli status"
+        title = f"{letter}  {c.LABEL[site]}"
         if not row.empty:
-            caption += f", F = {row['F'].iloc[0]:.2f}, p = {row['p_value'].iloc[0]:.4f}"
-        ordination(ax, sub_coords, sub_explained, sub_meta, "group", caption)
+            title += (f", F = {row['F'].iloc[0]:.2f}, "
+                      f"p = {row['p_value'].iloc[0]:.4f}")
+        ordination(ax, sub_coords, sub_explained, sub_meta, "group", title,
+                   legend_title="Buruli status" if letter == "C" else None)
 
-    fig.tight_layout()
-    c.save(fig, "Figure4_beta_diversity")
+    ax = fig.add_subplot(grid[1, 1])
+    shown = stats.copy()
+    shown["name"] = [f"{row['scope']}: {row['factor'].replace('_', ' ')}"
+                     for _, row in shown.iterrows()]
+    shown = shown.iloc[::-1]
+    positions = np.arange(len(shown))
+    colours = [c.CATEGORICAL[0] if sig else c.OTHER
+               for sig in shown["p_adjusted_bh"] < 0.05]
+    ax.barh(positions, shown["F"], height=0.66, color=colours, edgecolor="white",
+            linewidth=0.8)
+    for y, (f, p) in enumerate(zip(shown["F"], shown["p_adjusted_bh"])):
+        ax.text(f + 0.08, y, f"BH p = {p:.3f}", va="center", fontsize=8.5,
+                color=c.MUTED)
+    ax.set_yticks(positions)
+    ax.set_yticklabels(shown["name"], fontsize=9)
+    ax.set_xlim(0, float(shown["F"].max()) * 1.75)
+    ax.set_xlabel("PERMANOVA pseudo-F", color=c.INK)
+    ax.set_ylabel("Site and factor tested", color=c.INK, labelpad=6)
+    c.panel_title(ax, "D  Every factor tested", pad=12)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c.CATEGORICAL[0],
+                             label="BH p below 0.05"),
+               plt.Rectangle((0, 0), 1, 1, color=c.OTHER, label="not significant")]
+    c.side_legend(ax, handles=handles, labels=[h.get_label() for h in handles])
+    c.tidy_axes(ax, hide=("top", "right", "left"))
+
+    c.save(fig, "Figure5_beta_diversity")
 
     names = table.columns
     pd.DataFrame(distance, index=names, columns=names).to_csv(

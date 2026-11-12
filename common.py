@@ -38,12 +38,21 @@ INK = "#0b0b0b"
 MUTED = "#52514e"
 SEED = 20261111
 
+# Figures are sized for a Word page, 6.5 inches of text width. A figure wider than
+# that is scaled down when it is placed, and the text shrinks with it, so the widths
+# below stay near the page and the type is set large enough to survive the scaling.
+PAGE = 6.9
+WIDE = 9.2
+
 plt.rcParams.update({
-    "font.family": "DejaVu Sans", "font.size": 8,
+    "font.family": "DejaVu Sans", "font.size": 9,
+    "axes.titlesize": 11, "axes.titleweight": "bold",
+    "axes.labelsize": 10, "axes.labelweight": "normal",
+    "xtick.labelsize": 8.5, "ytick.labelsize": 8.5, "legend.fontsize": 9,
     "axes.edgecolor": MUTED, "axes.labelcolor": INK, "text.color": INK,
-    "xtick.color": INK, "ytick.color": INK, "axes.linewidth": 0.6,
+    "xtick.color": INK, "ytick.color": INK, "axes.linewidth": 0.8,
     "figure.facecolor": "white", "axes.facecolor": "white",
-    "savefig.facecolor": "white",
+    "savefig.facecolor": "white", "figure.dpi": 400,
 })
 
 
@@ -118,6 +127,37 @@ def aligned(site, level, relative=False, patients_only=True):
     meta = load_metadata(site, patients_only)
     shared = sorted(set(table.columns) & set(meta.index))
     return table[shared], meta.loc[shared]
+
+
+GRAM_POSITIVE_PHYLA = {"Actinomycetota", "Bacillota", "Deinococcota"}
+GRAM_NEGATIVE_CLASSES = {"Negativicutes"}
+GRAM_UNASSIGNED_PHYLA = {"Mycoplasmatota", "Chloroflexota", "Thermomicrobiota"}
+GRAM_COLOUR = {"Gram negative": "#2a78d6", "Gram positive": "#eb6834",
+               "unassigned": "#9a9890"}
+
+
+def load_lineage():
+    return pd.read_csv(OUT_ROOT / "bacteria_lineage.tsv", sep="\t", dtype=str).fillna("")
+
+
+def gram_status(lineage=None):
+    """One row per genus: Gram positive, Gram negative or unassigned.
+
+    Assigned from the lineage, because SILVA carries no Gram field. The phyla above
+    stain positive, except the class Negativicutes, which has a second membrane.
+    """
+    lineage = load_lineage() if lineage is None else lineage
+    out = {}
+    for _, row in lineage.iterrows():
+        phylum, klass = row["phylum"], row["class"]
+        if phylum in GRAM_UNASSIGNED_PHYLA or not phylum:
+            status = "unassigned"
+        elif phylum in GRAM_POSITIVE_PHYLA:
+            status = "Gram negative" if klass in GRAM_NEGATIVE_CLASSES else "Gram positive"
+        else:
+            status = "Gram negative"
+        out[row["genus"]] = status
+    return pd.Series(out, name="gram")
 
 
 def shannon(counts):
@@ -222,16 +262,41 @@ def benjamini_hochberg(pvalues):
 
 
 def tidy_axes(ax, hide=("top", "right")):
-    ax.tick_params(length=2)
+    ax.tick_params(length=3, width=0.9)
     for side in hide:
         ax.spines[side].set_visible(False)
 
 
-def panel_title(ax, text, **kwargs):
-    ax.set_title(text, loc="left", fontsize=9, fontweight="bold", color=INK, **kwargs)
+def panel_title(ax, text, size=11, **kwargs):
+    ax.set_title(text, loc="left", fontsize=size, fontweight="bold", color=INK, **kwargs)
+
+
+def side_legend(ax, handles=None, labels=None, title=None, **kwargs):
+    """A key placed outside the axes, on the right, so it never covers the data."""
+    if handles is None:
+        handles, labels = ax.get_legend_handles_labels()
+    legend = ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1.02, 1.0),
+                       frameon=False, labelcolor=INK, title=title,
+                       handlelength=1.4, borderaxespad=0.0, **kwargs)
+    if title:
+        legend.get_title().set_fontsize(9)
+        legend.get_title().set_fontweight("bold")
+    return legend
+
+
+def figure_legend(fig, handles, labels, title=None, **kwargs):
+    """One key for a whole figure, outside it on the right."""
+    legend = fig.legend(handles, labels, loc="center left", bbox_to_anchor=(1.0, 0.5),
+                        frameon=False, labelcolor=INK, title=title,
+                        handlelength=1.4, borderaxespad=0.0, **kwargs)
+    if title:
+        legend.get_title().set_fontsize(9)
+        legend.get_title().set_fontweight("bold")
+    return legend
 
 
 def save(fig, name):
     for ext in ("png", "pdf"):
-        fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=300, bbox_inches="tight")
+        fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=400, bbox_inches="tight",
+                    pad_inches=0.08)
     plt.close(fig)

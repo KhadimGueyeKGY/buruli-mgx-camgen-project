@@ -74,61 +74,64 @@ def tests(frame):
 def figure(frame, stats, depth):
     blocks = [(site, group) for site in c.SITES for group in c.GROUPS]
     rng = np.random.default_rng(c.SEED)
-    fig, axes = plt.subplots(1, len(METRICS), figsize=(14, 4.2))
+    fig = plt.figure(figsize=(6.3, 6.2))
+    grid = fig.add_gridspec(2, 2, hspace=0.92, wspace=0.38)
+    axes = [fig.add_subplot(grid[k // 2, k % 2]) for k in range(len(METRICS))]
 
-    for ax, (metric, name) in zip(axes, METRICS.items()):
+    for letter, ax, (metric, name) in zip("ABCD", axes, METRICS.items()):
         data, positions = [], []
         for i, (site, group) in enumerate(blocks):
             values = frame.loc[(frame["site"] == site) & (frame["group"] == group),
                                metric].dropna().to_numpy()
             data.append(values)
-            positions.append(i + (0.35 if i >= 2 else 0))
+            positions.append(i + (0.45 if i >= 2 else 0))
         for pos, values, (site, group) in zip(positions, data, blocks):
             if not len(values):
                 continue
-            parts = ax.boxplot(values, positions=[pos], widths=0.52,
+            parts = ax.boxplot(values, positions=[pos], widths=0.56,
                                patch_artist=True, showfliers=False)
             parts["boxes"][0].set(facecolor=c.GROUP_COLOUR[group], alpha=0.32,
-                                  edgecolor=c.MUTED, linewidth=0.8)
+                                  edgecolor=c.MUTED, linewidth=1.0)
             for element in ("whiskers", "caps", "medians"):
                 for item in parts[element]:
-                    item.set(color=c.MUTED, linewidth=0.8)
-            ax.scatter(rng.normal(pos, 0.055, len(values)), values, s=13,
+                    item.set(color=c.MUTED, linewidth=1.0)
+            ax.scatter(rng.normal(pos, 0.06, len(values)), values, s=24,
                        color=c.GROUP_COLOUR[group], edgecolor="white",
-                       linewidth=0.5, zorder=3)
+                       linewidth=0.6, zorder=3)
         ax.set_xticks(positions)
-        ax.set_xticklabels([g for _, g in blocks], fontsize=7)
+        ax.set_xticklabels([g for _, g in blocks], fontsize=9.5)
         ax.set_ylabel(name, color=c.INK)
+        ax.set_xlabel("Site and Buruli status", color=c.INK, labelpad=30)
+        c.panel_title(ax, f"{letter}  {name}", pad=12)
         c.tidy_axes(ax)
 
         top = max((v.max() for v in data if len(v)), default=1.0)
         bottom = min((v.min() for v in data if len(v)), default=0.0)
         span = top - bottom or 1.0
-        ax.set_ylim(bottom - 0.06 * span, top + 0.26 * span)
+        ax.set_ylim(bottom - 0.08 * span, top + 0.30 * span)
         for k, site in enumerate(c.SITES):
             left, right = positions[2 * k], positions[2 * k + 1]
             middle = (left + right) / 2
-            ax.text(middle, -0.14, c.LABEL[site], ha="center", va="top", fontsize=8,
-                    color=c.MUTED, transform=ax.get_xaxis_transform())
+            ax.text(middle, -0.17, c.LABEL[site], ha="center", va="top", fontsize=10,
+                    fontweight="bold", color=c.MUTED,
+                    transform=ax.get_xaxis_transform())
             row = stats[(stats["metric"] == metric) &
                         (stats["comparison"] == f"{c.LABEL[site]} BU vs non-BU")]
             if row.empty:
                 continue
-            y = top + 0.08 * span
-            ax.plot([left, left, right, right], [y, y + 0.03 * span, y + 0.03 * span, y],
-                    color=c.MUTED, linewidth=0.7)
-            ax.text(middle, y + 0.05 * span, f"p = {row['p_value'].iloc[0]:.3f}",
-                    ha="center", va="bottom", fontsize=6.5, color=c.MUTED)
+            y = top + 0.10 * span
+            ax.plot([left, left, right, right],
+                    [y, y + 0.035 * span, y + 0.035 * span, y],
+                    color=c.MUTED, linewidth=1.0)
+            ax.text(middle, y + 0.06 * span,
+                    f"p = {row['p_value'].iloc[0]:.3f}", ha="center", va="bottom",
+                    fontsize=9, color=c.MUTED)
 
-    c.panel_title(axes[0], f"Alpha diversity, rarefied to {depth:,} bacterial reads, "
-                           f"mean of {REPEATS} draws, Mann-Whitney within each site",
-                  pad=16)
     handles = [plt.Line2D([], [], marker="o", linestyle="", color=c.GROUP_COLOUR[g],
-                          markersize=6, label=g) for g in c.GROUPS]
-    fig.legend(handles=handles, frameon=False, fontsize=8, labelcolor=c.INK, ncol=2,
-               loc="upper right", bbox_to_anchor=(0.995, 1.045))
-    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-    c.save(fig, "Figure3_alpha_diversity")
+                          markersize=7, label=g) for g in c.GROUPS]
+    c.figure_legend(fig, handles, [h.get_label() for h in handles],
+                    title="Buruli status")
+    c.save(fig, "Figure4_alpha_diversity")
 
 
 def main():

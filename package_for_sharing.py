@@ -72,16 +72,18 @@ figures/   the {n_figures} figures, PNG and PDF
 tables/    every table behind them, tab separated
 README.txt this note
 
-Figure0  reads per barcode, share retained, read length
-Figure1  phylum composition per sample and per group
-Figure2  the twenty most abundant genera
-Figure3  alpha diversity, observed genera, Shannon, Simpson, Chao1
-Figure4  beta diversity, principal coordinates
-Figure5  differential abundance, Buruli against non Buruli
-Figure6  Gram composition
-Figure7  the clinical variables against the community
-Figure8  genus co-occurrence networks
-Figure9  predicted pathways, Buruli against non Buruli
+Figures follow the order of the analysis plan.
+
+Figure1  reads per sample, share retained, read length
+Figure2  phylum composition, per patient and per group
+Figure3  the twenty most abundant genera
+Figure4  alpha diversity: observed genera, Shannon, Simpson, Chao1
+Figure5  beta diversity: principal coordinates and every PERMANOVA
+Figure6  differential abundance, Buruli against non Buruli
+Figure7  Gram composition
+Figure8  predicted MetaCyc pathways, Buruli against non Buruli
+Figure9  the clinical variables against the community
+Figure10 genus co-occurrence networks
 FigureS1 classification before and after the database was rebuilt
 """
 

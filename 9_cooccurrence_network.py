@@ -76,9 +76,14 @@ def network(site, rng):
     return frame, chosen, counts
 
 
-LABEL_SIZE = 6.5
-LABEL_OFFSETS = ((0, 9), (0, -17), (38, 0), (-38, 0), (0, 20), (0, -28),
-                 (38, 16), (-38, 16), (38, -16), (-38, -16), (72, 0), (-72, 0))
+LABEL_SIZE = 9.0
+# Candidate label positions, in points from the node, tried in this order. A dense
+# cluster exhausts the near ones, so the ring widens rather than giving up.
+LABEL_OFFSETS = tuple(
+    (round(radius * np.cos(np.radians(angle))),
+     round(radius * np.sin(np.radians(angle))) + (9 if angle == 90 else 0))
+    for radius in (12, 26, 44, 66, 92)
+    for angle in (90, -90, 0, 180, 40, 140, -40, -140))
 
 
 def layout(nodes, edges, rng, iterations=400):
@@ -130,7 +135,7 @@ def draw(ax, site, frame, chosen, counts, enrichment, letter):
     relative = counts.div(counts.sum(axis=0), axis=1)
     sizes = relative.loc[chosen].mean(axis=1).to_numpy()
     # Square root so one dominant genus does not swallow the rest of the picture.
-    sizes = 30 + 420 * np.sqrt(sizes / sizes.max() if sizes.max() else sizes)
+    sizes = 40 + 520 * np.sqrt(sizes / sizes.max() if sizes.max() else sizes)
 
     for _, row in edges.iterrows():
         i, j = index[row["genus_a"]], index[row["genus_b"]]
@@ -158,14 +163,17 @@ def draw(ax, site, frame, chosen, counts, enrichment, letter):
     ax.set_aspect("equal")
     ax.axis("off")
 
-    labelled = sorted(degree, key=degree.get, reverse=True)[:10]
+    labelled = sorted(degree, key=degree.get, reverse=True)[:7]
     # A label goes to the first offset whose box clears the boxes already placed.
     # The box is measured with the renderer rather than guessed from the name
     # length, because a guess puts a long genus underneath a short neighbour.
     font = FontProperties(family=plt.rcParams["font.family"], size=LABEL_SIZE)
     renderer = ax.figure.canvas.get_renderer()
     per_point = ax.figure.dpi / 72.0
-    pad = 0.12 * LABEL_SIZE * per_point
+    # The data transform is still provisional while the figure is being built, so a
+    # label is given a margin beyond its own box. Without it two labels that passed
+    # the test here end up touching once the layout is final.
+    pad = 0.12 * LABEL_SIZE * per_point + 2.5 * per_point
     placed = []
     for genus in labelled:
         width, height, descent = renderer.get_text_width_height_descent(
@@ -182,6 +190,8 @@ def draw(ax, site, frame, chosen, counts, enrichment, letter):
                 chosen_offset, chosen_box = candidate, box
                 break
         if chosen_box is None:
+            # Nothing fits: the label is dropped rather than printed over another.
+            continue
             x = anchor[0] + chosen_offset[0] * per_point
             y = anchor[1] + chosen_offset[1] * per_point
             chosen_box = (x - width / 2 - pad, x + width / 2 + pad,
@@ -192,7 +202,7 @@ def draw(ax, site, frame, chosen, counts, enrichment, letter):
                     color=c.INK, zorder=4,
                     bbox=dict(boxstyle="round,pad=0.12", facecolor="white",
                               edgecolor="none", alpha=0.8))
-    c.panel_title(ax, f"{letter}  {c.LABEL[site]}, {len(edges)} edges")
+    c.panel_title(ax, f"{letter}  {c.LABEL[site]}, {len(edges)} edges", pad=10)
     return len(edges)
 
 
@@ -202,7 +212,8 @@ def main():
         if (c.FIG_DIR / "Table8_differential_abundance.tsv").exists() else pd.DataFrame()
 
     frames = {}
-    fig, axes = plt.subplots(1, 2, figsize=(13, 6.8), gridspec_kw={"wspace": 0.04})
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 4.2),
+                             gridspec_kw={"wspace": 0.28})
     for ax, letter, site in zip(axes, "AB", c.SITES):
         frame, chosen, counts = network(site, rng)
         frames[site] = frame
@@ -218,12 +229,8 @@ def main():
         plt.Line2D([], [], color=c.CATEGORICAL[0], linewidth=2, label="positive edge"),
         plt.Line2D([], [], color=c.CATEGORICAL[7], linewidth=2, label="negative edge"),
     ]
-    fig.legend(handles=handles, frameon=False, fontsize=7.5, labelcolor=c.INK,
-               ncol=5, loc="lower center", bbox_to_anchor=(0.5, -0.01))
-    fig.suptitle("Genus co-occurrence, Spearman on centred log ratios, "
-                 "Benjamini-Hochberg below 0.05 and absolute rho at least 0.5",
-                 fontsize=9, fontweight="bold", color=c.INK, x=0.012, ha="left", y=0.99)
-    c.save(fig, "Figure8_cooccurrence_network")
+    c.figure_legend(fig, handles, [h.get_label() for h in handles])
+    c.save(fig, "Figure10_cooccurrence_network")
 
     table = pd.concat([f for f in frames.values() if not f.empty], ignore_index=True) \
         if any(not f.empty for f in frames.values()) else pd.DataFrame()
