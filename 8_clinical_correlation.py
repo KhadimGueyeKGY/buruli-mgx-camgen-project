@@ -159,7 +159,7 @@ def figure_genera(correlation, chosen):
 def figure_diversity(alpha, diversity_stats):
     """Point 8: Shannon diversity against the clinical variables."""
     fig, axes = plt.subplots(1, 2, figsize=(5.4, 2.9),
-                             gridspec_kw={"wspace": 0.42})
+                             gridspec_kw={"wspace": 0.50})
     rng = np.random.default_rng(c.SEED)
     for k, variable in enumerate(("lesion_category", "treatment")):
         ax = axes[k]
@@ -195,7 +195,7 @@ def figure_diversity(alpha, diversity_stats):
         ax.set_xlabel(f"{NICE[variable]}, by site", color=c.INK, labelpad=40)
         row = diversity_stats[(diversity_stats["metric"] == "shannon") &
                               (diversity_stats["variable"] == variable)]
-        c.panel_title(ax, f"{'AB'[k]}  Shannon by {NICE[variable].lower()}", pad=24)
+        c.panel_title(ax, f"{'AB'[k]}  {NICE[variable]}", pad=24)
         if not row.empty:
             ax.text(0.0, 1.015, "   ".join(
                 f"{r['site']} rho {r['spearman_rho']:.2f}"
