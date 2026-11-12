@@ -132,7 +132,9 @@ def aligned(site, level, relative=False, patients_only=True):
 GRAM_POSITIVE_PHYLA = {"Actinomycetota", "Bacillota", "Deinococcota"}
 GRAM_NEGATIVE_CLASSES = {"Negativicutes"}
 GRAM_UNASSIGNED_PHYLA = {"Mycoplasmatota", "Chloroflexota", "Thermomicrobiota"}
-GRAM_COLOUR = {"Gram negative": "#2a78d6", "Gram positive": "#eb6834",
+# Deliberately not the group colours: Gram status and Buruli status share a figure,
+# and the same blue meaning two things in one figure is unreadable.
+GRAM_COLOUR = {"Gram negative": "#6250d6", "Gram positive": "#eda100",
                "unassigned": "#9a9890"}
 
 

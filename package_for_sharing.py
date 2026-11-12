@@ -78,12 +78,13 @@ Figure1  reads per sample, share retained, read length
 Figure2  phylum composition, per patient and per group
 Figure3  the twenty most abundant genera
 Figure4  alpha diversity: observed genera, Shannon, Simpson, Chao1
-Figure5  beta diversity: principal coordinates and every PERMANOVA
+Figure5  beta diversity: principal coordinates
 Figure6  differential abundance, Buruli against non Buruli
 Figure7  Gram composition
 Figure8  predicted MetaCyc pathways, Buruli against non Buruli
-Figure9  the clinical variables against the community
-Figure10 genus co-occurrence networks
+Figure9  genus abundance against the clinical variables
+Figure10 Shannon diversity against the clinical variables
+Figure11 genus co-occurrence, the correlations that survive correction
 FigureS1 classification before and after the database was rebuilt
 """
 

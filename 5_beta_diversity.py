@@ -34,8 +34,7 @@ def combined():
     return table[order], meta.loc[order]
 
 
-def ordination(ax, coords, explained, meta, colour_by, title,
-               legend_title=None):
+def ordination(ax, coords, explained, meta, colour_by, title):
     values = meta[colour_by].fillna("unknown")
     palette = c.GROUP_COLOUR if colour_by == "group" else None
     categories = [g for g in c.GROUPS if g in set(values)] if colour_by == "group" \
@@ -43,16 +42,13 @@ def ordination(ax, coords, explained, meta, colour_by, title,
     for i, value in enumerate(categories):
         mask = (values == value).to_numpy()
         colour = palette[value] if palette else c.CATEGORICAL[i % len(c.CATEGORICAL)]
-        ax.scatter(coords[mask, 0], coords[mask, 1], s=46, color=colour,
-                   edgecolor="white", linewidth=0.8, label=str(value))
+        ax.scatter(coords[mask, 0], coords[mask, 1], s=34, color=colour,
+                   edgecolor="white", linewidth=0.7, label=str(value))
     ax.axhline(0, color=c.MUTED, linewidth=0.6, zorder=0)
     ax.axvline(0, color=c.MUTED, linewidth=0.6, zorder=0)
-    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent of the variation)",
-                  color=c.INK)
+    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent)", color=c.INK)
     ax.set_ylabel(f"PCo2 ({100 * explained[1]:.1f} percent)", color=c.INK)
-    c.panel_title(ax, title, pad=12)
-    if legend_title:
-        c.side_legend(ax, title=legend_title)
+    c.panel_title(ax, title, pad=22)
     c.tidy_axes(ax)
 
 
@@ -87,59 +83,52 @@ def main():
     stats.to_csv(c.FIG_DIR / "Table6_beta_diversity_permanova.tsv", sep="\t",
                  index=False, float_format="%.5f")
 
-    fig = plt.figure(figsize=(6.9, 7.2))
-    grid = fig.add_gridspec(2, 2, hspace=0.62, wspace=1.15)
+    # Three ordinations in a row with the keys to the right of the figure. A legend
+    # beside a left hand panel would land in the gutter and hit its neighbour.
+    # Every factor tested is in Table6, which a bar chart would only repeat.
+    fig = plt.figure(figsize=(6.6, 3.0))
+    grid = fig.add_gridspec(1, 3, wspace=0.52)
 
     ax = fig.add_subplot(grid[0, 0])
     for site in c.SITES:
         mask = (meta["site"] == site).to_numpy()
-        ax.scatter(coords[mask, 0], coords[mask, 1], s=46,
-                   color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.8,
+        ax.scatter(coords[mask, 0], coords[mask, 1], s=34,
+                   color=c.SITE_COLOUR[site], edgecolor="white", linewidth=0.7,
                    label=c.LABEL[site])
     ax.axhline(0, color=c.MUTED, linewidth=0.6, zorder=0)
     ax.axvline(0, color=c.MUTED, linewidth=0.6, zorder=0)
-    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent of the variation)",
-                  color=c.INK)
+    ax.set_xlabel(f"PCo1 ({100 * explained[0]:.1f} percent)", color=c.INK)
     ax.set_ylabel(f"PCo2 ({100 * explained[1]:.1f} percent)", color=c.INK)
-    c.panel_title(ax, f"A  Both sites, F = {f_site:.2f}, p = {p_site:.4f}", pad=12)
-    c.side_legend(ax, title="Site")
+    c.panel_title(ax, "A  Both sites", pad=22)
+    ax.text(0.0, 1.015, f"F = {f_site:.2f}, p = {p_site:.4f}", transform=ax.transAxes,
+            fontsize=8.5, color=c.MUTED, va="bottom")
+    site_keys = ax.get_legend_handles_labels()
     c.tidy_axes(ax)
 
-    for position, letter, site in zip(((0, 1), (1, 0)), "BC", c.SITES):
-        ax = fig.add_subplot(grid[position])
+    group_keys = None
+    for column, letter, site in zip((1, 2), "BC", c.SITES):
+        ax = fig.add_subplot(grid[0, column])
         _, sub_meta, _, (sub_coords, sub_explained) = per_site[site]
         row = stats[(stats["scope"] == c.LABEL[site]) & (stats["factor"] == "group")]
-        title = f"{letter}  {c.LABEL[site]}"
+        ordination(ax, sub_coords, sub_explained, sub_meta, "group",
+                   f"{letter}  {c.LABEL[site]}")
         if not row.empty:
-            title += (f", F = {row['F'].iloc[0]:.2f}, "
-                      f"p = {row['p_value'].iloc[0]:.4f}")
-        ordination(ax, sub_coords, sub_explained, sub_meta, "group", title,
-                   legend_title="Buruli status" if letter == "C" else None)
+            ax.text(0.0, 1.015, f"F = {row['F'].iloc[0]:.2f}, "
+                                f"p = {row['p_value'].iloc[0]:.4f}",
+                    transform=ax.transAxes, fontsize=8.5, color=c.MUTED, va="bottom")
+        if group_keys is None:
+            group_keys = ax.get_legend_handles_labels()
 
-    ax = fig.add_subplot(grid[1, 1])
-    shown = stats.copy()
-    shown["name"] = [f"{row['scope']}: {row['factor'].replace('_', ' ')}"
-                     for _, row in shown.iterrows()]
-    shown = shown.iloc[::-1]
-    positions = np.arange(len(shown))
-    colours = [c.CATEGORICAL[0] if sig else c.OTHER
-               for sig in shown["p_adjusted_bh"] < 0.05]
-    ax.barh(positions, shown["F"], height=0.66, color=colours, edgecolor="white",
-            linewidth=0.8)
-    for y, (f, p) in enumerate(zip(shown["F"], shown["p_adjusted_bh"])):
-        ax.text(f + 0.08, y, f"BH p = {p:.3f}", va="center", fontsize=8.5,
-                color=c.MUTED)
-    ax.set_yticks(positions)
-    ax.set_yticklabels(shown["name"], fontsize=9)
-    ax.set_xlim(0, float(shown["F"].max()) * 1.75)
-    ax.set_xlabel("PERMANOVA pseudo-F", color=c.INK)
-    ax.set_ylabel("Site and factor tested", color=c.INK, labelpad=6)
-    c.panel_title(ax, "D  Every factor tested", pad=12)
-    handles = [plt.Rectangle((0, 0), 1, 1, color=c.CATEGORICAL[0],
-                             label="BH p below 0.05"),
-               plt.Rectangle((0, 0), 1, 1, color=c.OTHER, label="not significant")]
-    c.side_legend(ax, handles=handles, labels=[h.get_label() for h in handles])
-    c.tidy_axes(ax, hide=("top", "right", "left"))
+    # Figure legends, not axes legends: an artist added to an axes is left out of
+    # the tight bounding box at save time and comes back cropped.
+    for (entries, title), anchor in zip(
+            ((site_keys, "Site"), (group_keys, "Buruli status")), (0.98, 0.52)):
+        legend = fig.legend(entries[0], entries[1], loc="upper left",
+                            bbox_to_anchor=(1.0, anchor), frameon=False,
+                            labelcolor=c.INK, title=title, handlelength=1.4,
+                            borderaxespad=0.0)
+        legend.get_title().set_fontsize(9)
+        legend.get_title().set_fontweight("bold")
 
     c.save(fig, "Figure5_beta_diversity")
 

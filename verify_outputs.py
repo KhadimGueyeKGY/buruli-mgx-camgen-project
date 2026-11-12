@@ -343,11 +343,17 @@ def check_pathways():
 def check_figures():
     # Figures follow the order of the analysis plan. Panels are grouped only where
     # they read together; nothing is merged at the cost of legibility.
-    expected = ["Figure1_read_statistics", "Figure2_phylum_composition",
-                "Figure3_top_genera", "Figure4_alpha_diversity",
-                "Figure5_beta_diversity", "Figure6_differential_abundance",
-                "Figure7_gram_composition", "Figure8_functional_profiling",
-                "Figure9_clinical_correlation", "Figure10_cooccurrence_network",
+    expected = ["Figure1_read_statistics",
+                "Figure2_phylum_composition",
+                "Figure3_top_genera",
+                "Figure4_alpha_diversity",
+                "Figure5_beta_diversity",
+                "Figure6_differential_abundance",
+                "Figure7_gram_composition",
+                "Figure8_functional_profiling",
+                "Figure9_clinical_genus_correlation",
+                "Figure10_clinical_diversity",
+                "Figure11_cooccurrence_matrix",
                 "FigureS1_classification_comparison"]
     for name in expected:
         for extension in ("png", "pdf"):

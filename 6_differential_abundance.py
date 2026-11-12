@@ -192,8 +192,8 @@ def heatmap(ax, fig, site, frame, limit, show_bar):
 
 def figure_gram(gram_long, gram_stats):
     """Point 6: Gram composition, averaged per group and per patient."""
-    fig, axes = plt.subplots(1, 2, figsize=(6.6, 3.8),
-                             gridspec_kw={"wspace": 0.52})
+    fig, axes = plt.subplots(1, 2, figsize=(5.6, 3.4),
+                             gridspec_kw={"wspace": 0.62})
     blocks = [(c.LABEL[s], g) for s in c.SITES for g in c.GROUPS]
 
     ax = axes[0]
@@ -217,9 +217,21 @@ def figure_gram(gram_long, gram_stats):
     ax.set_ylabel("Site and group", color=c.INK)
     ax.invert_yaxis()
     c.panel_title(ax, "A  Mean Gram composition", pad=12)
+    gram_keys = ax.get_legend_handles_labels()
     c.tidy_axes(ax, hide=("top", "right", "left"))
 
-    gram_panel(axes[1], gram_long, gram_stats, "B")
+    group_keys = gram_panel(axes[1], gram_long, gram_stats, "B")
+    # Figure legends, not axes legends: a key beside the left hand panel would land
+    # in the gutter, and an artist added to an axes is cropped at save time.
+    for (entries, title), anchor in zip(
+            ((gram_keys, "Gram status"), (group_keys, "Buruli status")),
+            (0.95, 0.45)):
+        legend = fig.legend(entries[0], entries[1], loc="upper left",
+                            bbox_to_anchor=(1.0, anchor), frameon=False,
+                            labelcolor=c.INK, title=title, handlelength=1.4,
+                            borderaxespad=0.0)
+        legend.get_title().set_fontsize(9)
+        legend.get_title().set_fontweight("bold")
     c.save(fig, "Figure7_gram_composition")
 
 
@@ -249,9 +261,9 @@ def gram_panel(ax, gram_long, gram_stats, letter):
     ax.set_xticks(positions)
     ax.set_xticklabels([g for _, g in blocks], fontsize=9.5)
     ax.set_ylabel("Percent Gram positive", color=c.INK)
-    ax.set_xlabel("Site and Buruli status", color=c.INK, labelpad=30)
+    ax.set_xlabel("Site and Buruli status", color=c.INK, labelpad=40)
     ax.set_ylim(bottom=-3)
-    c.panel_title(ax, f"{letter}  Gram positive share per patient", pad=12)
+    c.panel_title(ax, f"{letter}  Gram positive share", pad=12)
     ax.set_ylim(top=ax.get_ylim()[1] * 1.18)
     for k, site in enumerate(c.SITES):
         middle = (positions[2 * k] + positions[2 * k + 1]) / 2
@@ -265,9 +277,8 @@ def gram_panel(ax, gram_long, gram_stats, letter):
                     transform=ax.get_xaxis_transform())
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8,
                           color=c.GROUP_COLOUR[g], label=g) for g in c.GROUPS]
-    c.side_legend(ax, handles=handles, labels=[h.get_label() for h in handles],
-                  title="Buruli status")
     c.tidy_axes(ax)
+    return handles, [h.get_label() for h in handles]
 
 
 def figure_differential(results):

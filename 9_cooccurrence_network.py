@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
-Co-occurrence networks, point 9 of the analysis plan.
+Genus co-occurrence, point 9 of the analysis plan.
 
 SparCC and CoNet are not installed here, so the same idea is implemented directly:
 Spearman correlations between genera on centred log ratio abundances, which removes
 the spurious negative correlation that relative abundances impose, with significance
 from a permutation null and a Benjamini-Hochberg correction. One network per site.
 
-Nodes are the leading genera, sized by mean abundance and coloured by whether the
-genus is higher in Buruli or in non Buruli lesions. Edges are the correlations that
-survive the correction, blue for positive and red for negative.
+The surviving correlations are drawn as a matrix rather than as a force directed
+graph. With 35 genera and 125 edges per site the graph collapses into a core that
+no label can reach without covering a node, while the matrix shows every pair at
+once and stays readable at the size a page gives it. Every pair, with rho and the
+adjusted p value, is in Table14.
 
-Layout is a deterministic Fruchterman-Reingold placement seeded from the shared
-random seed, so the picture is reproducible.
-
-Run 6_differential_abundance.py first, its table supplies the node colours.
+Genera are ordered once, over both sites, by the leading eigenvector of the mean
+absolute correlation, so genera that move together sit together and the two panels
+can be compared row by row.
 
 Usage: python3 9_cooccurrence_network.py
 
@@ -22,7 +23,7 @@ Auteur : Khadim Gueye
 """
 
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
@@ -76,161 +77,102 @@ def network(site, rng):
     return frame, chosen, counts
 
 
-LABEL_SIZE = 9.0
-# Candidate label positions, in points from the node, tried in this order. A dense
-# cluster exhausts the near ones, so the ring widens rather than giving up.
-LABEL_OFFSETS = tuple(
-    (round(radius * np.cos(np.radians(angle))),
-     round(radius * np.sin(np.radians(angle))) + (9 if angle == 90 else 0))
-    for radius in (12, 26, 44, 66, 92)
-    for angle in (90, -90, 0, 180, 40, 140, -40, -140))
+def shorten(name, limit=20):
+    """SILVA joins ambiguous genera with hyphens, which no axis can hold."""
+    if len(name) <= limit:
+        return name
+    head = name.split("-")[0]
+    return f"{head}-..." if len(head) + 4 <= limit else name[:limit - 3] + "..."
 
 
-def layout(nodes, edges, rng, iterations=400):
-    """Fruchterman-Reingold on a unit square, written out so the result does not
-    depend on networkx. Repulsion is k squared over the distance and attraction is
-    the distance squared over k, the forces of the original paper, and positions are
-    kept inside the frame so a few isolated nodes cannot squash the rest."""
-    n = len(nodes)
-    index = {name: i for i, name in enumerate(nodes)}
-    pos = rng.random((n, 2))
-    adjacency = np.zeros((n, n))
-    for _, row in edges.iterrows():
-        i, j = index[row["genus_a"]], index[row["genus_b"]]
-        adjacency[i, j] = adjacency[j, i] = 1.0
-    k = np.sqrt(1.0 / n)
-    temperature = 0.1
-    for _ in range(iterations):
-        delta = pos[:, None, :] - pos[None, :, :]
-        distance = np.linalg.norm(delta, axis=-1)
-        # The diagonal is zero, so it is floored rather than set to infinity: an
-        # infinite diagonal multiplied by a zero adjacency gives nan, which then
-        # spreads to every coordinate.
-        safe = np.maximum(distance, 1e-6)
-        direction = delta / safe[..., None]
-        repulsion = (direction * (k ** 2 / safe)[..., None]).sum(axis=1)
-        attraction = (direction * (adjacency * safe ** 2 / k)[..., None]).sum(axis=1)
-        move = repulsion - attraction
-        length = np.linalg.norm(move, axis=1, keepdims=True)
-        length[length == 0] = 1.0
-        pos += move / length * np.minimum(length, temperature)
-        pos = np.clip(pos, 0.0, 1.0)
-        temperature *= 0.985
-    span = np.ptp(pos, axis=0)
-    span[span < 1e-9] = 1.0
-    return (pos - pos.min(axis=0)) / span
+def seriate(matrix):
+    """An order that puts correlated genera next to each other.
+
+    The leading eigenvector of the absolute correlation gives each genus a position
+    on one axis; sorting by it is the cheapest spectral seriation and needs no
+    clustering library.
+    """
+    values = np.nan_to_num(np.abs(matrix.to_numpy(dtype=float)))
+    np.fill_diagonal(values, 0.0)
+    eigenvalues, eigenvectors = np.linalg.eigh(values)
+    leading = eigenvectors[:, int(np.argmax(eigenvalues))]
+    return [matrix.index[i] for i in np.argsort(leading)]
 
 
-def draw(ax, site, frame, chosen, counts, enrichment, letter):
-    if frame.empty:
-        ax.text(0.5, 0.5, "too few samples", ha="center", va="center",
-                transform=ax.transAxes, color=c.MUTED)
-        c.panel_title(ax, f"{letter}  {c.LABEL[site]}")
-        ax.axis("off")
-        return 0
-    edges = frame[frame["edge"]]
-    rng = np.random.default_rng(c.SEED)
-    pos = layout(chosen, edges, rng)
-    index = {name: i for i, name in enumerate(chosen)}
-    relative = counts.div(counts.sum(axis=0), axis=1)
-    sizes = relative.loc[chosen].mean(axis=1).to_numpy()
-    # Square root so one dominant genus does not swallow the rest of the picture.
-    sizes = 40 + 520 * np.sqrt(sizes / sizes.max() if sizes.max() else sizes)
+def matrix_for(frame, order):
+    """Square matrix of the surviving correlations, blank where none survived."""
+    out = pd.DataFrame(np.nan, index=order, columns=order, dtype=float)
+    for _, row in frame[frame["edge"]].iterrows():
+        a, b = row["genus_a"], row["genus_b"]
+        if a in out.index and b in out.index:
+            out.loc[a, b] = out.loc[b, a] = row["spearman_rho"]
+    return out
 
-    for _, row in edges.iterrows():
-        i, j = index[row["genus_a"]], index[row["genus_b"]]
-        colour = c.CATEGORICAL[0] if row["spearman_rho"] > 0 else c.CATEGORICAL[7]
-        ax.plot(*zip(pos[i], pos[j]), color=colour, linewidth=0.5 + 1.8 * abs(row["spearman_rho"]),
-                alpha=0.55, zorder=1, solid_capstyle="round")
 
-    lookup = enrichment[enrichment["site"] == c.LABEL[site]].set_index("genus") \
-        if not enrichment.empty else pd.DataFrame()
-    colours = []
-    for genus in chosen:
-        if genus in getattr(lookup, "index", []):
-            fold = lookup.loc[genus, "log2_fold_change"]
-            colours.append(c.GROUP_COLOUR["BU"] if fold > 0 else c.GROUP_COLOUR["non-BU"])
-        else:
-            colours.append(c.OTHER)
-    ax.scatter(pos[:, 0], pos[:, 1], s=sizes, c=colours, edgecolor="white",
-               linewidth=0.9, zorder=2)
-    degree = {name: 0 for name in chosen}
-    for _, row in edges.iterrows():
-        degree[row["genus_a"]] += 1
-        degree[row["genus_b"]] += 1
-    ax.set_xlim(-0.10, 1.10)
-    ax.set_ylim(-0.10, 1.10)
-    ax.set_aspect("equal")
-    ax.axis("off")
-
-    labelled = sorted(degree, key=degree.get, reverse=True)[:7]
-    # A label goes to the first offset whose box clears the boxes already placed.
-    # The box is measured with the renderer rather than guessed from the name
-    # length, because a guess puts a long genus underneath a short neighbour.
-    font = FontProperties(family=plt.rcParams["font.family"], size=LABEL_SIZE)
-    renderer = ax.figure.canvas.get_renderer()
-    per_point = ax.figure.dpi / 72.0
-    # The data transform is still provisional while the figure is being built, so a
-    # label is given a margin beyond its own box. Without it two labels that passed
-    # the test here end up touching once the layout is final.
-    pad = 0.12 * LABEL_SIZE * per_point + 2.5 * per_point
-    placed = []
-    for genus in labelled:
-        width, height, descent = renderer.get_text_width_height_descent(
-            genus, font, False)
-        anchor = ax.transData.transform(pos[index[genus]])
-        chosen_offset, chosen_box = LABEL_OFFSETS[0], None
-        for candidate in LABEL_OFFSETS:
-            x = anchor[0] + candidate[0] * per_point
-            y = anchor[1] + candidate[1] * per_point
-            box = (x - width / 2 - pad, x + width / 2 + pad,
-                   y - descent - pad, y + height - descent + pad)
-            if all(box[1] < q[0] or box[0] > q[1] or box[3] < q[2] or box[2] > q[3]
-                   for q in placed):
-                chosen_offset, chosen_box = candidate, box
-                break
-        if chosen_box is None:
-            # Nothing fits: the label is dropped rather than printed over another.
-            continue
-            x = anchor[0] + chosen_offset[0] * per_point
-            y = anchor[1] + chosen_offset[1] * per_point
-            chosen_box = (x - width / 2 - pad, x + width / 2 + pad,
-                          y - descent - pad, y + height - descent + pad)
-        placed.append(chosen_box)
-        ax.annotate(genus, pos[index[genus]], textcoords="offset points",
-                    xytext=chosen_offset, ha="center", fontsize=LABEL_SIZE,
-                    color=c.INK, zorder=4,
-                    bbox=dict(boxstyle="round,pad=0.12", facecolor="white",
-                              edgecolor="none", alpha=0.8))
-    c.panel_title(ax, f"{letter}  {c.LABEL[site]}, {len(edges)} edges", pad=10)
-    return len(edges)
+def draw(ax, fig, site, matrix, letter, show_bar):
+    shown = matrix.to_numpy(dtype=float)
+    cmap = LinearSegmentedColormap.from_list("div", c.DIVERGING)
+    cmap.set_bad("#f7f7f6")
+    mesh = ax.pcolormesh(np.arange(len(matrix) + 1), np.arange(len(matrix) + 1),
+                         np.ma.masked_invalid(shown[::-1]), cmap=cmap,
+                         vmin=-1, vmax=1, edgecolors="white", linewidth=0.4)
+    # The matrix is symmetric, so the columns carry the same names as the rows and
+    # printing them twice only costs room. The names are given once, on panel A.
+    ax.set_xticks([])
+    ax.set_yticks(np.arange(len(matrix)) + 0.5 if letter == "A" else [])
+    if letter == "A":
+        ax.set_yticklabels([shorten(name) for name in list(matrix.index)[::-1]],
+                           fontsize=7)
+        ax.set_ylabel("Genus", color=c.INK)
+    ax.set_xlabel("Genus, in the order of the rows", color=c.INK)
+    edges = int(np.isfinite(shown).sum() // 2)
+    c.panel_title(ax, f"{letter}  {c.LABEL[site]}, {edges} pairs", pad=12)
+    # Square cells would tie the row height to the panel width, which leaves the
+    # genus names less room than they need. The cells are allowed to be tall.
+    ax.tick_params(length=2, width=0.7)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    ax.tick_params(left=(letter == "A"))
+    if show_bar:
+        bar = fig.colorbar(mesh, ax=ax, pad=0.03, fraction=0.045)
+        bar.set_label("Spearman rho", color=c.INK, fontsize=9)
+        bar.ax.tick_params(labelsize=8.5)
+        bar.outline.set_edgecolor(c.MUTED)
 
 
 def main():
     rng = np.random.default_rng(c.SEED)
-    enrichment = pd.read_csv(c.FIG_DIR / "Table8_differential_abundance.tsv", sep="\t") \
-        if (c.FIG_DIR / "Table8_differential_abundance.tsv").exists() else pd.DataFrame()
-
-    frames = {}
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 4.2),
-                             gridspec_kw={"wspace": 0.28})
-    for ax, letter, site in zip(axes, "AB", c.SITES):
-        frame, chosen, counts = network(site, rng)
+    frames, chosen_by_site = {}, {}
+    for site in c.SITES:
+        frame, chosen, _ = network(site, rng)
         frames[site] = frame
-        draw(ax, site, frame, chosen, counts, enrichment, letter)
+        chosen_by_site[site] = chosen
 
-    handles = [
-        plt.Line2D([], [], marker="o", linestyle="", color=c.GROUP_COLOUR["BU"],
-                   markersize=7, label="higher in BU"),
-        plt.Line2D([], [], marker="o", linestyle="", color=c.GROUP_COLOUR["non-BU"],
-                   markersize=7, label="higher in non-BU"),
-        plt.Line2D([], [], marker="o", linestyle="", color=c.OTHER, markersize=7,
-                   label="not tested"),
-        plt.Line2D([], [], color=c.CATEGORICAL[0], linewidth=2, label="positive edge"),
-        plt.Line2D([], [], color=c.CATEGORICAL[7], linewidth=2, label="negative edge"),
-    ]
-    c.figure_legend(fig, handles, [h.get_label() for h in handles])
-    c.save(fig, "Figure10_cooccurrence_network")
+    # Only the genera that carry a surviving correlation somewhere: a row of blanks
+    # names a genus the figure has nothing to say about.
+    linked = set()
+    for frame in frames.values():
+        if not frame.empty:
+            kept = frame[frame["edge"]]
+            linked |= set(kept["genus_a"]) | set(kept["genus_b"])
+    shared = sorted(linked)
+    mean = pd.DataFrame(0.0, index=shared, columns=shared)
+    for frame in frames.values():
+        if frame.empty:
+            continue
+        for _, row in frame.iterrows():
+            a, b = row["genus_a"], row["genus_b"]
+            if a in mean.index and b in mean.index:
+                mean.loc[a, b] += abs(row["spearman_rho"]) / len(frames)
+                mean.loc[b, a] = mean.loc[a, b]
+    order = seriate(mean)
+
+    fig, axes = plt.subplots(1, 2, figsize=(6.6, 5.6),
+                             gridspec_kw={"wspace": 0.10})
+    for ax, letter, site in zip(axes, "AB", c.SITES):
+        draw(ax, fig, site, matrix_for(frames[site], order), letter,
+             show_bar=(letter == "B"))
+    c.save(fig, "Figure11_cooccurrence_matrix")
 
     table = pd.concat([f for f in frames.values() if not f.empty], ignore_index=True) \
         if any(not f.empty for f in frames.values()) else pd.DataFrame()

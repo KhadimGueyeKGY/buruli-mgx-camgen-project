@@ -99,13 +99,10 @@ def diversity_against_clinical(alpha):
     return frame
 
 
-def figure(correlation, alpha, diversity_stats, chosen):
-    fig = plt.figure(figsize=(5.8, 10.4))
-    grid = fig.add_gridspec(2, 2, height_ratios=[2.25, 1.0], hspace=0.28,
-                            wspace=0.46)
+def figure_genera(correlation, chosen):
+    """Point 8: every leading genus against every clinical variable."""
+    fig, ax = plt.subplots(figsize=(5.0, 6.2))
     cmap = LinearSegmentedColormap.from_list("div", c.DIVERGING)
-
-    ax = fig.add_subplot(grid[0, :])
     if correlation.empty:
         ax.axis("off")
     else:
@@ -113,6 +110,7 @@ def figure(correlation, alpha, diversity_stats, chosen):
                    if not correlation[(correlation["site"] == s) &
                                       (correlation["variable"] == v)].empty]
         genera = sorted({g for gs in chosen.values() for g in gs})
+        marked = False
         data = pd.DataFrame(index=genera,
                             columns=pd.MultiIndex.from_tuples(columns), dtype=float)
         for site, variable in columns:
@@ -128,6 +126,7 @@ def figure(correlation, alpha, diversity_stats, chosen):
             for j, genus in enumerate(genera[::-1]):
                 if genus in sub.index and sub.loc[genus, "p_value"] < 0.05:
                     marker = "**" if sub.loc[genus, "p_adjusted_bh"] < 0.05 else "*"
+                    marked = True
                     ax.text(i + 0.5, j + 0.5, marker, ha="center", va="center",
                             fontsize=11, fontweight="bold", color=c.INK)
         ax.set_yticks(np.arange(len(genera)) + 0.5)
@@ -145,19 +144,25 @@ def figure(correlation, alpha, diversity_stats, chosen):
             idx = [i for i, (s, _) in enumerate(columns) if s == site]
             ax.text(np.mean(idx) + 0.5, len(genera) + 0.4, site, ha="center",
                     va="bottom", fontsize=11, fontweight="bold", color=c.MUTED)
-        c.panel_title(ax, "A  Genus abundance against the clinical variables",
-                      pad=22)
-        bar = fig.colorbar(mesh, ax=ax, orientation="horizontal", pad=0.30,
-                           fraction=0.038, aspect=46)
-        bar.set_label("Spearman rho    * p below 0.05    "
-                      "** Benjamini-Hochberg below 0.05",
-                      color=c.INK, fontsize=8.5)
+        c.panel_title(ax, "Genus abundance against the clinical variables", pad=22)
+        bar = fig.colorbar(mesh, ax=ax, pad=0.022, fraction=0.040)
+        # The marker key is only worth printing when a marker was actually drawn.
+        label = "Spearman rho"
+        if marked:
+            label += "\n* p below 0.05,  ** Benjamini-Hochberg below 0.05"
+        bar.set_label(label, color=c.INK, fontsize=9)
         bar.ax.tick_params(labelsize=8.5)
         bar.outline.set_edgecolor(c.MUTED)
+    c.save(fig, "Figure9_clinical_genus_correlation")
 
+
+def figure_diversity(alpha, diversity_stats):
+    """Point 8: Shannon diversity against the clinical variables."""
+    fig, axes = plt.subplots(1, 2, figsize=(5.4, 2.9),
+                             gridspec_kw={"wspace": 0.42})
     rng = np.random.default_rng(c.SEED)
     for k, variable in enumerate(("lesion_category", "treatment")):
-        ax = fig.add_subplot(grid[1, k])
+        ax = axes[k]
         levels = [l for l, _ in sorted(VARIABLES[variable].items(), key=lambda kv: kv[1])]
         positions, ticks = [], []
         pos = 0.0
@@ -190,7 +195,7 @@ def figure(correlation, alpha, diversity_stats, chosen):
         ax.set_xlabel(f"{NICE[variable]}, by site", color=c.INK, labelpad=40)
         row = diversity_stats[(diversity_stats["metric"] == "shannon") &
                               (diversity_stats["variable"] == variable)]
-        c.panel_title(ax, f"{'BC'[k]}  Shannon by {NICE[variable].lower()}", pad=24)
+        c.panel_title(ax, f"{'AB'[k]}  Shannon by {NICE[variable].lower()}", pad=24)
         if not row.empty:
             ax.text(0.0, 1.015, "   ".join(
                 f"{r['site']} rho {r['spearman_rho']:.2f}"
@@ -202,14 +207,14 @@ def figure(correlation, alpha, diversity_stats, chosen):
             chosen_pos = [positions[i] for i in idx if i < len(positions)]
             if chosen_pos:
                 ax.text(np.mean(chosen_pos), -0.23, c.LABEL[site], ha="center",
-                        va="top", fontsize=10.5, fontweight="bold", color=c.MUTED,
+                        va="top", fontsize=10, fontweight="bold", color=c.MUTED,
                         transform=ax.get_xaxis_transform())
 
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=7,
                           color=c.SITE_COLOUR[site], label=c.LABEL[site])
                for site in c.SITES]
     c.figure_legend(fig, handles, [h.get_label() for h in handles], title="Site")
-    c.save(fig, "Figure9_clinical_correlation")
+    c.save(fig, "Figure10_clinical_diversity")
 
 
 def main():
@@ -243,7 +248,8 @@ def main():
     pd.DataFrame(treatment).to_csv(c.FIG_DIR / "Table13_treatment_tests.tsv", sep="\t",
                                    index=False, float_format="%.5f")
 
-    figure(correlation, alpha, diversity_stats, chosen)
+    figure_genera(correlation, chosen)
+    figure_diversity(alpha, diversity_stats)
     if not correlation.empty:
         top = correlation.reindex(correlation["p_value"].sort_values().index).head(10)
         print(top.to_string(index=False, float_format=lambda v: f"{v:.4f}"))

@@ -264,12 +264,13 @@ figures.
 | `Figure2_phylum_composition` | Phylum composition, per patient and per group |
 | `Figure3_top_genera` | The twenty most abundant genera |
 | `Figure4_alpha_diversity` | Observed genera, Shannon, Simpson, Chao1 |
-| `Figure5_beta_diversity` | Principal coordinates and every PERMANOVA |
+| `Figure5_beta_diversity` | Principal coordinates, both sites and each site |
 | `Figure6_differential_abundance` | Volcano and heatmap per site |
 | `Figure7_gram_composition` | Gram shares, mean and per patient |
 | `Figure8_functional_profiling` | Predicted MetaCyc pathways, BU against non-BU |
-| `Figure9_clinical_correlation` | Clinical variables against the community |
-| `Figure10_cooccurrence_network` | Genus co-occurrence per site |
+| `Figure9_clinical_genus_correlation` | Genus abundance against the clinical variables |
+| `Figure10_clinical_diversity` | Shannon against the clinical variables |
+| `Figure11_cooccurrence_matrix` | Surviving genus correlations per site |
 | `FigureS1_classification_comparison` | Classification before and after the rebuild |
 | `Table0_read_statistics.tsv` | Reads per barcode with the inclusion decision |
 | `Table1_phylum_composition.tsv` | Percent per phylum per sample, with group means |
